@@ -1,0 +1,41 @@
+name: CI
+on: push
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    name: Fmt
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - pip install -e .[dev]
+      - black --check app
+      - isort --check app
+      - mypy app
+      - flake8 app
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - pip install -e .[dev]
+      - mypy app
+      - flake8 app
+  test:
+    runs-on: ubuntu-latest
+    name: Test
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - pip install -e .[dev]
+      - pytest
