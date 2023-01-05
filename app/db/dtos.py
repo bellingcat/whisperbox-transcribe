@@ -1,11 +1,26 @@
+import enum
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import AnyHttpUrl, BaseModel, Json
 
 
-class WithStandardFields(BaseModel):
+class ArtifactType(enum.Enum):
+    RawTranscript = "RawTranscript"
+
+
+class JobType(enum.Enum):
+    Transcript = "Transcript"
+
+
+class JobStatus(enum.Enum):
+    Create = "Create"
+    Error = "Error"
+    Success = "Success"
+
+
+class WithDbFields(BaseModel):
     id: UUID
     created_at: datetime
     updated_at: Optional[datetime]
@@ -14,10 +29,13 @@ class WithStandardFields(BaseModel):
         orm_mode = True
 
 
-class AccountBase(BaseModel):
-    api_key: UUID
-    name: str
+class Job(WithDbFields):
+    status: JobStatus
+    type: JobType
+    url: AnyHttpUrl
 
 
-class Account(AccountBase, WithStandardFields):
-    pass
+class Artifact(WithDbFields):
+    data: Optional[Json]
+    job_id: UUID
+    type: ArtifactType

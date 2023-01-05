@@ -6,6 +6,7 @@ from pydantic import BaseSettings
 class Settings(BaseSettings):
     DATABASE_URI: str
     ENVIRONMENT: str
+    API_SECRET: str
 
     class Config:
         env_file = ".env"

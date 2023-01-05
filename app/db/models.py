@@ -1,16 +1,20 @@
-from typing import Optional
 import uuid
+from typing import Optional
 
-from sqlalchemy import Column, DateTime, String, func
+from sqlalchemy import JSON, Column, DateTime, Enum, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import declarative_mixin, declared_attr, Mapped
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Mapped, declarative_mixin, declared_attr
+
+from app.db.dtos import ArtifactType, JobStatus, JobType
 
 Base = declarative_base()
 
 
 @declarative_mixin
 class WithStandardFields:
+    """Mixin that adds standard fields (id, created_at, updated_at)."""
+
     @declared_attr
     def created_at(cls) -> Mapped[DateTime]:
         return Column(DateTime, server_default=func.now(), nullable=False)
@@ -21,11 +25,26 @@ class WithStandardFields:
 
     @declared_attr
     def id(cls) -> Mapped[UUID]:
-        return Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
+        return Column(
+            UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4
+        )
 
 
-class Account(Base, WithStandardFields):
-    __tablename__ = "accounts"
+class Job(Base, WithStandardFields):
+    __tablename__ = "jobs"
 
-    api_key = Column(UUID(as_uuid=True), index=True, default=uuid.uuid4)
-    name = Column(String(length=256), unique=True)
+    # TODO: job config
+    url = Column(String(length=2048))
+    status = Column(Enum(JobStatus), nullable=False)
+    type = Column(Enum(JobType), nullable=False)
+
+
+class Artifact(Base, WithStandardFields):
+    __tablename__ = "artifacts"
+
+    job_id = Column(
+        UUID(as_uuid=True), ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False
+    )
+
+    data = Column(JSON(none_as_null=True))
+    type = Column(Enum(ArtifactType), nullable=False)

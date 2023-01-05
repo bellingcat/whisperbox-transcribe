@@ -1,26 +1,16 @@
-from uuid import UUID
+from hmac import compare_digest
 
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
-from sqlalchemy.orm.exc import NoResultFound
 
-from .db.base import get_db
-from .db.models import Account
+from app.config import settings
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-def authenticate_api_key(
-    db: Session = Depends(get_db),
-    api_key: str = Depends(oauth2_scheme),
-) -> Account:
-    try:
-        account = db.query(Account).filter(Account.api_key == UUID(api_key)).one()
-    except NoResultFound:
-        raise HTTPException(status_code=401)
-    except Exception as e:
-        print(e)
+def authenticate_api_key(token: str = Depends(oauth2_scheme)) -> None:
+    if not token:
         raise HTTPException(status_code=422)
-
-    return account
+    # use compare_digest to counter timing attacks.
+    if not compare_digest(settings.API_SECRET, token):
+        raise HTTPException(status_code=401)

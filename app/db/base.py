@@ -10,9 +10,12 @@ engine = create_engine(settings.DATABASE_URI)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-def get_db() -> Generator[Session, None, None]:
-    db = SessionLocal()
+def get_session() -> Generator[Session, None, None]:
+    db: Session = SessionLocal()
     try:
         yield db
+        db.commit()
+    except Exception:
+        db.rollback()
     finally:
         db.close()

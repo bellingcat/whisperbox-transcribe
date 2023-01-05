@@ -4,8 +4,8 @@ import pytest
 from sqlalchemy.orm import Session
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
-from app.db.base import SessionLocal, engine, get_db
-from app.db.models import Account, Base
+from app.db.base import SessionLocal, engine, get_session
+from app.db.models import Base
 from app.main import app
 
 
@@ -26,17 +26,8 @@ def db_session() -> Generator[Session, None, None]:
     transaction = connection.begin()
 
     with SessionLocal(bind=connection) as session:
-        app.dependency_overrides[get_db] = lambda: session
+        app.dependency_overrides[get_session] = lambda: session
         yield session
         app.dependency_overrides.clear()
         transaction.rollback()
         connection.close()
-
-
-@pytest.fixture(scope="function")
-def test_account(db_session: Session) -> Account:
-    account = Account(name="test_account")
-    db_session.add(account)
-    db_session.commit()
-    db_session.refresh(account)
-    return account

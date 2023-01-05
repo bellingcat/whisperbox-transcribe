@@ -2,7 +2,7 @@ from typing import Dict
 
 from fastapi.testclient import TestClient
 
-from app.db.models import Account
+from app.config import settings
 from app.main import app
 
 client = TestClient(app)
@@ -18,15 +18,15 @@ def test_authorization_header_missing() -> None:
 
 
 def test_authorization_header_malformed() -> None:
-    res = client.get("/api/v1", headers=auth_header("not_a_uuid"))
+    res = client.get("/api/v1", headers={"Authorization": "Bearer"})
     assert res.status_code == 422
 
 
-def test_inexistent_api_key(test_account: Account) -> None:
-    res = client.get("/api/v1", headers=auth_header(str(test_account.id)))
+def test_incorrect_api_key() -> None:
+    res = client.get("/api/v1", headers=auth_header("not_valid"))
     assert res.status_code == 401
 
 
-def test_existing_api_key(test_account: Account) -> None:
-    res = client.get("/api/v1", headers=auth_header(str(test_account.api_key)))
+def test_existing_api_key() -> None:
+    res = client.get("/api/v1", headers=auth_header(settings.API_SECRET))
     assert res.status_code == 200
