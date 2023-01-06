@@ -1,6 +1,5 @@
-
 dev:
-	uvicorn app.main:app --reload
+	docker-compose -f dev.docker-compose.yml up --build --remove-orphans
 
 fmt:
 	black app

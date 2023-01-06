@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  app:
+    container_name: whisper_api_app
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    environment:
+      DATABASE_URI: postgresql://postgres:postgres@postgres/whisper_api
+      ENVIRONMENT: development
+      API_SECRET: foobar
+    ports:
+      - "8000:80"
+    networks:
+      - app
+    volumes:
+      - ./:/code
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  postgres:
+    container_name: whisper_api_postgres
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: whisper_api
+    ports:
+      - "5432:5432"
+    networks:
+      - app
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    container_name: whisper_api_redis
+    image: redis:7-alpine
+    networks:
+      - app
+
+volumes:
+  postgres-data:
+
+networks:
+  app:
+    driver: bridge

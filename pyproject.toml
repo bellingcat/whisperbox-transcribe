@@ -17,12 +17,12 @@ dev = [
   # code formatting
   "black",
   "isort",
-
   # linting
   "flake8",
   "mypy",
+]
 
-  # tests
+test = [
   "httpx",
   "sqlalchemy-stubs",
   "sqlalchemy-utils",
@@ -31,3 +31,6 @@ dev = [
 
 [tool.isort]
 profile = "black"
+
+[tool.setuptools]
+py-modules = []

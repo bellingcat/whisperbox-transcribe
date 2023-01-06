@@ -5,10 +5,10 @@ from fastapi.security import OAuth2PasswordBearer
 
 from app.config import settings
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-
-def authenticate_api_key(token: str = Depends(oauth2_scheme)) -> None:
+def authenticate_api_key(
+    token: str = Depends(OAuth2PasswordBearer(tokenUrl="token")),
+) -> None:
     if not token:
         raise HTTPException(status_code=422)
     # use compare_digest to counter timing attacks.
