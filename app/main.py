@@ -4,12 +4,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Path
 from pydantic import AnyHttpUrl, BaseModel
 from sqlalchemy.orm import Session
-from app.db.base import get_session
 
-from app.db.dtos import Job, JobStatus, JobType
+import app.db.dtos as dtos
 import app.db.models as models
-
-from .security import authenticate_api_key
+from app.db.base import get_session
+from app.utils.security import authenticate_api_key
 
 app = FastAPI()
 
@@ -25,29 +24,35 @@ class TranscriptPayload(BaseModel):
     url: AnyHttpUrl
 
 
-@api_router.post("/transcripts", response_model=Job)
+@api_router.post("/transcripts", response_model=dtos.Job)
 def create_transcript(
     payload: TranscriptPayload, session: Session = Depends(get_session)
 ) -> models.Job:
-    job = models.Job(url=payload.url, status=JobStatus.Create, type=JobType.Transcript)
+    job = models.Job(
+        url=payload.url, status=dtos.JobStatus.Create, type=dtos.JobType.Transcript
+    )
     session.add(job)
     session.flush()
     return job
 
 
-@api_router.get("/transcripts", response_model=List[Job])
+@api_router.get("/transcripts", response_model=List[dtos.Job])
 def get_transcripts(session: Session = Depends(get_session)) -> List[models.Job]:
-    return session.query(models.Job).filter(models.Job.type == JobType.Transcript).all()
+    return (
+        session.query(models.Job)
+        .filter(models.Job.type == dtos.JobType.Transcript)
+        .all()
+    )
 
 
-@api_router.get("/transcripts/{id}", response_model=Job)
+@api_router.get("/transcripts/{id}", response_model=dtos.Job)
 def get_transcript(
     id: UUID = Path(), session: Session = Depends(get_session)
-) -> Optional[Job]:
+) -> Optional[dtos.Job]:
     job = (
         session.query(models.Job)
         .filter(models.Job.id == id)
-        .filter(models.Job.type == JobType.Transcript)
+        .filter(models.Job.type == dtos.JobType.Transcript)
         .one_or_none()
     )
     if not job:
@@ -60,7 +65,7 @@ def delete_transcript(
     id: UUID = Path(), session: Session = Depends(get_session)
 ) -> None:
     session.query(models.Job).filter(models.Job.id == id).filter(
-        models.Job.type == JobType.Transcript
+        models.Job.type == dtos.JobType.Transcript
     ).delete()
     return None
 

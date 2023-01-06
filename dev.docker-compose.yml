@@ -1,27 +1,12 @@
 version: "3.8"
 
-services:
-  app:
-    container_name: whisper_api_app
-    build:
-      context: .
-      dockerfile: dev.Dockerfile
-    environment:
-      DATABASE_URI: postgresql://postgres:postgres@postgres/whisper_api
-      ENVIRONMENT: development
-      API_SECRET: foobar
-    ports:
-      - "8000:80"
-    networks:
-      - app
-    volumes:
-      - ./:/code
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
+x-app-variables: &app-variables
+  API_SECRET: a_very_secret_token
+  DATABASE_URI: postgresql://postgres:postgres@postgres/whisper_api
+  ENVIRONMENT: development
+  REDIS_URI: redis://redis:6379/0
 
+services:
   postgres:
     container_name: whisper_api_postgres
     image: postgres:15-alpine
@@ -44,6 +29,53 @@ services:
   redis:
     container_name: whisper_api_redis
     image: redis:7-alpine
+    ports:
+      - 6379:6379
+    networks:
+      - app
+
+  app:
+    container_name: whisper_api_app
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    command: bash ./app/start.sh
+    environment: *app-variables
+    ports:
+      - "8000:80"
+    networks:
+      - app
+    volumes:
+      - ./:/code
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  worker:
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    container_name: whisper_api_worker
+    command: celery --app=app.worker.celery worker --loglevel=info
+    volumes:
+      - ./:/code
+    environment: *app-variables
+    depends_on:
+      - app
+      - redis
+    networks:
+      - app
+
+  flower:
+    container_name: whisper_api_flower
+    image: mher/flower
+    command: celery --broker redis://redis:6379/0 flower --port=5555
+    ports:
+      - 5555:5555
+    depends_on:
+      - redis
     networks:
       - app
 

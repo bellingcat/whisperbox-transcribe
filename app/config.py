@@ -4,13 +4,10 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
+    API_SECRET: str
     DATABASE_URI: str
     ENVIRONMENT: str
-    API_SECRET: str
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    REDIS_URI: str
 
 
 if "ENVIRONMENT" in os.environ and os.environ["ENVIRONMENT"] == "test":

@@ -5,6 +5,7 @@ version = "0.0.1"
 
 dependencies=[
   "alembic ==1.9.0",
+  "celery[redis] ==5.2.7",
   "fastapi ==0.88.0",
   "psycopg2 ==2.9.5",
   "python-dotenv ==0.21.0",

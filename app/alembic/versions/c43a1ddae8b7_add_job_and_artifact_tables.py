@@ -5,8 +5,8 @@ Revises:
 Create Date: 2023-01-05 12:00:58.824773
 
 """
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -26,9 +26,7 @@ def upgrade() -> None:
             sa.Enum("Create", "Error", "Success", name="jobstatus"),
             nullable=False,
         ),
-        sa.Column(
-            "type", sa.Enum("Transcript", name="jobtype"), nullable=False
-        ),
+        sa.Column("type", sa.Enum("Transcript", name="jobtype"), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(),
