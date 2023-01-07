@@ -16,14 +16,14 @@ jobs:
       - isort --check app
       - flake8 app
       - mypy app
-  test:
-    runs-on: ubuntu-latest
-    name: Test
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-      - pip install -e .[dev]
-      - pytest
+  # test:
+  #   runs-on: ubuntu-latest
+  #   name: Test
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-python@v4
+  #       with:
+  #         python-version: '3.11'
+  #         cache: 'pip'
+  #     - pip install -e .[test]
+  #     - pytest

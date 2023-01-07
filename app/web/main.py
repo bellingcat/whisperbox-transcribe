@@ -5,10 +5,10 @@ from fastapi import APIRouter, Depends, FastAPI, HTTPException, Path
 from pydantic import AnyHttpUrl, BaseModel
 from sqlalchemy.orm import Session
 
-import app.db.dtos as dtos
-import app.db.models as models
-from app.db.base import get_session
-from app.utils.security import authenticate_api_key
+import app.shared.db.dtos as dtos
+import app.shared.db.models as models
+from app.shared.db.base import get_session
+from app.web.security import authenticate_api_key
 
 app = FastAPI()
 

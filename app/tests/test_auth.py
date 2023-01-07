@@ -2,8 +2,8 @@ from typing import Dict
 
 from fastapi.testclient import TestClient
 
-from app.config import settings
-from app.main import app
+from app.shared.config import settings
+from app.web.main import app
 
 client = TestClient(app)
 

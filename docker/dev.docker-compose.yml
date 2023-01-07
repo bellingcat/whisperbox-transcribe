@@ -37,16 +37,15 @@ services:
   app:
     container_name: whisper_api_app
     build:
-      context: .
-      dockerfile: dev.Dockerfile
-    command: bash ./app/start.sh
+      context: ../
+      dockerfile: docker/app.dev.Dockerfile
     environment: *app-variables
     ports:
       - "8000:80"
     networks:
       - app
     volumes:
-      - ./:/code
+      - ../:/code
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,12 +54,11 @@ services:
 
   worker:
     build:
-      context: .
-      dockerfile: dev.Dockerfile
+      context: ../
+      dockerfile: docker/worker.dev.Dockerfile
     container_name: whisper_api_worker
-    command: celery --app=app.worker.celery worker --loglevel=info
     volumes:
-      - ./:/code
+      - ../:/code
     environment: *app-variables
     depends_on:
       - app

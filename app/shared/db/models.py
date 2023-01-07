@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Mapped, declarative_mixin, declared_attr
 
-from app.db.dtos import ArtifactType, JobStatus, JobType
+from .dtos import ArtifactType, JobStatus, JobType
 
 Base = declarative_base()
 

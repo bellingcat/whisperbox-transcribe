@@ -4,9 +4,9 @@ import pytest
 from sqlalchemy.orm import Session
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
-from app.db.base import SessionLocal, engine, get_session
-from app.db.models import Base
-from app.main import app
+from app.shared.db.base import SessionLocal, engine, get_session
+from app.shared.db.models import Base
+from app.web.main import app
 
 
 def pytest_configure() -> None:

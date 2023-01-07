@@ -1,5 +1,6 @@
 dev:
-	docker-compose -f dev.docker-compose.yml up --build --remove-orphans
+	docker-compose -f docker/dev.docker-compose.yml build --progress tty
+	docker-compose -f docker/dev.docker-compose.yml up --remove-orphans
 
 fmt:
 	black app
