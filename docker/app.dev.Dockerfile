@@ -1,9 +1,9 @@
-FROM python:3.11 AS compile-image
+FROM python:3.10 AS compile-image
 
 COPY pyproject.toml .
-RUN pip install --user .[test]
+RUN pip install --user .[test,web]
 
-FROM python:3.11 AS build-image
+FROM python:3.10 AS build-image
 
 WORKDIR /code
 

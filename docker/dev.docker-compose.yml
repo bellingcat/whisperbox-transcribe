@@ -33,6 +33,8 @@ services:
       - 6379:6379
     networks:
       - app
+    volumes:
+      - redis-data:/data
 
   app:
     container_name: whisper_api_app
@@ -79,6 +81,7 @@ services:
 
 volumes:
   postgres-data:
+  redis-data:
 
 networks:
   app:

@@ -4,19 +4,21 @@ description = ""
 version = "0.0.1"
 
 dependencies=[
-  "alembic ==1.9.0",
   "celery[redis] ==5.2.7",
-  "fastapi ==0.88.0",
   "psycopg2 ==2.9.5",
-  "python-dotenv ==0.21.0",
   "sqlalchemy[mypy] == 1.4.45",
-  "uvicorn[standard] ==0.20.0"
+  "python-dotenv ==0.21.0",
 ]
 
 [project.optional-dependencies]
+web=[
+  "alembic ==1.9.0",
+  "fastapi ==0.88.0",
+  "uvicorn[standard] ==0.20.0"
+]
 
 worker=[
-  "whisper @ git+https://github.com/openai/whisper.git"
+  "whisper-openai ==1.0.0"
 ]
 
 dev = [
