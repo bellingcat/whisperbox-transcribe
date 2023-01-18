@@ -1,4 +1,4 @@
-import os
+import sys
 
 from pydantic import BaseSettings
 
@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     REDIS_URI: str
 
 
-if "ENVIRONMENT" in os.environ and os.environ["ENVIRONMENT"] == "test":
-    settings = Settings(_env_file=".env.test")  # type: ignore
+if "pytest" in sys.modules:
+    settings = Settings(_env_file=".env.test", _env_file_encoding="utf-8")  # type: ignore
 else:
     settings = Settings()

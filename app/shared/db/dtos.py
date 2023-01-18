@@ -1,23 +1,23 @@
 import enum
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 from uuid import UUID
 
 from pydantic import AnyHttpUrl, BaseModel, Json
 
 
-class ArtifactType(enum.Enum):
-    RawTranscript = "RawTranscript"
+class ArtifactType(str, enum.Enum):
+    raw_transcript = "raw_transcript"
 
 
-class JobType(enum.Enum):
-    Transcript = "Transcript"
+class JobType(str, enum.Enum):
+    transcript = "transcript"
 
 
-class JobStatus(enum.Enum):
-    Create = "Create"
-    Error = "Error"
-    Success = "Success"
+class JobStatus(str, enum.Enum):
+    create = "create"
+    error = "error"
+    success = "success"
 
 
 class WithDbFields(BaseModel):
@@ -36,6 +36,7 @@ class Job(WithDbFields):
 
 
 class Artifact(WithDbFields):
-    data: Optional[Json]
+    # TODO: narrow type
+    data: Optional[Any]
     job_id: UUID
     type: ArtifactType
