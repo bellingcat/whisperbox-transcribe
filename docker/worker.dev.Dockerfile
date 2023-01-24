@@ -1,9 +1,11 @@
 FROM python:3.10 AS compile-image
 
-COPY pyproject.toml .
-RUN pip install --user .[test,worker]
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && apt-get install -y --no-install-recommends ffmpeg
 
-RUN apt-get update && apt-get clean && apt-get install -y --no-install-recommends ffmpeg
+COPY pyproject.toml .
+RUN --mount=type=cache,target=/root/.cache \
+    pip install --user .[worker,worker_dev]
 
 FROM python:3.10 AS build-image
 
@@ -15,4 +17,4 @@ ENV PYTHONUNBUFFERED 1
 COPY --from=compile-image /root/.local /root/.local
 ENV PATH=/root/.local/bin:$PATH
 
-ENTRYPOINT ["celery", "--app=app.worker.main.celery", "worker", "--loglevel=info"]
+ENTRYPOINT ["watchmedo", "auto-restart", "-d" , "app/worker", "-p", "*.py", "celery", "--", "--app=app.worker.main.celery", "worker", "--loglevel=info"]

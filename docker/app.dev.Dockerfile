@@ -1,7 +1,8 @@
 FROM python:3.10 AS compile-image
 
 COPY pyproject.toml .
-RUN pip install --user .[test,web]
+RUN --mount=type=cache,target=/root/.cache \
+    pip install --user .[web]
 
 FROM python:3.10 AS build-image
 
