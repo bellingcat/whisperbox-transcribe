@@ -1,12 +1,13 @@
 from typing import Dict
-from fastapi.testclient import TestClient
+
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.shared.db.dtos import JobType, JobStatus
-from app.web.main import app
-import app.shared.db.models as models
 import app.shared.db.dtos as dtos
+import app.shared.db.models as models
+from app.shared.db.dtos import JobStatus, JobType
+from app.web.main import app
 
 client = TestClient(app)
 
@@ -73,7 +74,7 @@ def test_get_job_pass(auth_headers: Dict[str, str], mock_job: models.Job) -> Non
 
 def test_get_job_not_found(auth_headers: Dict[str, str], mock_job: models.Job) -> None:
     res = client.get(
-        f"/api/v1/jobs/c8ecf5ea-77cf-48a2-9ecd-199ef35e0ccb",
+        "/api/v1/jobs/c8ecf5ea-77cf-48a2-9ecd-199ef35e0ccb",
         headers=auth_headers,
     )
     assert res.status_code == 404

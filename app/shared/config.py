@@ -7,7 +7,9 @@ class Settings(BaseSettings):
     API_SECRET: str
     DATABASE_URI: str
     ENVIRONMENT: str
-    REDIS_URI: str
+
+    # derived settings
+    BROKER_URI: str
 
 
 if "pytest" in sys.modules:

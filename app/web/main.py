@@ -9,6 +9,7 @@ import app.shared.db.dtos as dtos
 import app.shared.db.models as models
 from app.shared.db.base import get_session
 from app.web.security import authenticate_api_key
+from app.worker.main import transcribe
 
 app = FastAPI()
 
@@ -30,9 +31,11 @@ def create_job(
     payload: TranscriptPayload, session: Session = Depends(get_session)
 ) -> models.Job:
     job = models.Job(url=payload.url, status=dtos.JobStatus.create, type=payload.type)
-
     session.add(job)
     session.flush()
+
+    transcribe.delay(job.id)
+
     return job
 
 
@@ -51,7 +54,7 @@ def get_transcripts(
 @api_router.get("/jobs/{id}", response_model=dtos.Job)
 def get_transcript(
     id: UUID = Path(), session: Session = Depends(get_session)
-) -> Optional[dtos.Job]:
+) -> Optional[models.Job]:
     job = session.query(models.Job).filter(models.Job.id == id).one_or_none()
     if not job:
         raise HTTPException(status_code=404)
@@ -61,7 +64,7 @@ def get_transcript(
 @api_router.get("/jobs/{id}/artifacts", response_model=List[dtos.Artifact])
 def get_artifacts_for_job(
     id: UUID = Path(), session: Session = Depends(get_session)
-) -> List[dtos.Artifact]:
+) -> List[models.Artifact]:
     artifacts = (
         session.query(models.Artifact).filter(models.Artifact.job_id == id)
     ).all()

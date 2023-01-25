@@ -1,5 +1,5 @@
 [project]
-name = "whisper-api"
+name = "whisperbox"
 description = ""
 version = "0.0.1"
 
@@ -7,7 +7,7 @@ dependencies=[
   "celery[redis] ==5.2.7",
   "psycopg2 ==2.9.5",
   "sqlalchemy[mypy] == 1.4.45",
-  "python-dotenv ==0.21.0",
+  "pydantic ==1.10.4"
 ]
 
 [project.optional-dependencies]
@@ -21,7 +21,7 @@ worker=[
   "whisper-openai ==1.0.0"
 ]
 
-dev = [
+lint = [
   # code formatting
   "black",
   "isort",
@@ -34,7 +34,12 @@ test = [
   "httpx",
   "sqlalchemy-stubs",
   "sqlalchemy-utils",
+  "python-dotenv",
   "pytest"
+]
+
+worker_dev = [
+  "watchdog[watchmedo]"
 ]
 
 [tool.isort]

@@ -3,8 +3,8 @@ from typing import Optional
 
 from sqlalchemy import JSON, Column, DateTime, Enum, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Mapped, declarative_mixin, declared_attr
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy.orm import Mapped, declarative_mixin  # type: ignore
 
 from .dtos import ArtifactType, JobStatus, JobType
 
@@ -33,9 +33,9 @@ class WithStandardFields:
 class Job(Base, WithStandardFields):
     __tablename__ = "jobs"
 
-    # TODO: job config
     url = Column(String(length=2048))
     status = Column(Enum(JobStatus), nullable=False)
+    meta = Column(JSON(none_as_null=True))
     type = Column(Enum(JobType), nullable=False)
 
 

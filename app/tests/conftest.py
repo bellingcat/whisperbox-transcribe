@@ -3,10 +3,10 @@ from typing import Dict, Generator
 import pytest
 from sqlalchemy.orm import Session
 from sqlalchemy_utils import create_database, database_exists, drop_database
-from app.shared.config import settings
 
-from app.shared.db.base import SessionLocal, engine, get_session
 import app.shared.db.models as models
+from app.shared.config import settings
+from app.shared.db.base import SessionLocal, engine, get_session
 from app.web.main import app
 
 

@@ -2,7 +2,6 @@ from typing import Dict
 
 from fastapi.testclient import TestClient
 
-from app.shared.config import settings
 from app.web.main import app
 
 client = TestClient(app)
@@ -19,7 +18,7 @@ def test_authorization_header_malformed() -> None:
 
 
 def test_incorrect_api_key() -> None:
-    res = client.get("/api/v1", headers={"Authorization": "Bearer incorrect" })
+    res = client.get("/api/v1", headers={"Authorization": "Bearer incorrect"})
     assert res.status_code == 401
 
 

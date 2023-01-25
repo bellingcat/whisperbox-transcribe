@@ -2,18 +2,18 @@ version: "3.8"
 
 x-app-variables: &app-variables
   API_SECRET: a_very_secret_token
-  DATABASE_URI: postgresql://postgres:postgres@postgres/whisper_api
+  DATABASE_URI: postgresql://postgres:postgres@postgres/whisperbox
   ENVIRONMENT: development
-  REDIS_URI: redis://redis:6379/0
+  BROKER_URI: redis://redis:6379/0
 
 services:
   postgres:
-    container_name: whisper_api_postgres
+    container_name: whisperbox_postgres
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: whisper_api
+      POSTGRES_DB: whisperbox
     ports:
       - "5432:5432"
     networks:
@@ -27,8 +27,9 @@ services:
       retries: 5
 
   redis:
-    container_name: whisper_api_redis
+    container_name: whisperbox_redis
     image: redis:7-alpine
+    command: ["redis-server", "--save", "60 1"]
     ports:
       - 6379:6379
     networks:
@@ -37,7 +38,7 @@ services:
       - redis-data:/data
 
   app:
-    container_name: whisper_api_app
+    container_name: whisperbox_app
     build:
       context: ../
       dockerfile: docker/app.dev.Dockerfile
@@ -58,7 +59,7 @@ services:
     build:
       context: ../
       dockerfile: docker/worker.dev.Dockerfile
-    container_name: whisper_api_worker
+    container_name: whisperbox_worker
     volumes:
       - ../:/code
     environment: *app-variables
@@ -69,7 +70,7 @@ services:
       - app
 
   flower:
-    container_name: whisper_api_flower
+    container_name: whisperbox_flower
     image: mher/flower
     command: celery --broker redis://redis:6379/0 flower --port=5555
     ports:

@@ -3,7 +3,16 @@ from datetime import datetime
 from typing import Any, Optional
 from uuid import UUID
 
-from pydantic import AnyHttpUrl, BaseModel, Json
+from pydantic import AnyHttpUrl, BaseModel
+
+
+class WithDbFields(BaseModel):
+    id: UUID
+    created_at: datetime
+    updated_at: Optional[datetime]
+
+    class Config:
+        orm_mode = True
 
 
 class ArtifactType(str, enum.Enum):
@@ -16,23 +25,21 @@ class JobType(str, enum.Enum):
 
 class JobStatus(str, enum.Enum):
     create = "create"
+    processing = "processing"
     error = "error"
     success = "success"
 
 
-class WithDbFields(BaseModel):
-    id: UUID
-    created_at: datetime
-    updated_at: Optional[datetime]
-
-    class Config:
-        orm_mode = True
+class JobMeta(BaseModel):
+    language: Optional[str]
+    task_id: Optional[UUID]
 
 
 class Job(WithDbFields):
     status: JobStatus
     type: JobType
     url: AnyHttpUrl
+    meta: Optional[JobMeta]
 
 
 class Artifact(WithDbFields):
