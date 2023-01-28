@@ -18,7 +18,8 @@ web=[
 ]
 
 worker=[
-  "whisper-openai ==1.0.0"
+  "whisper-openai ==1.0.0",
+  "requests ==2.28.2"
 ]
 
 lint = [

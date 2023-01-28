@@ -35,6 +35,7 @@ class Job(Base, WithStandardFields):
 
     url = Column(String(length=2048))
     status = Column(Enum(JobStatus), nullable=False)
+    config = Column(JSON(none_as_null=True))
     meta = Column(JSON(none_as_null=True))
     type = Column(Enum(JobType), nullable=False)
 

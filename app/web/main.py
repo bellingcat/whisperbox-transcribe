@@ -7,11 +7,12 @@ from sqlalchemy.orm import Session
 
 import app.shared.db.dtos as dtos
 import app.shared.db.models as models
+from app.shared.celery import get_celery_binding
 from app.shared.db.base import get_session
 from app.web.security import authenticate_api_key
-from app.worker.main import transcribe
 
 app = FastAPI()
+celery = get_celery_binding()
 
 api_router = APIRouter(prefix="/api/v1", dependencies=[Depends(authenticate_api_key)])
 
@@ -21,19 +22,33 @@ def api_root() -> Dict:
     return {}
 
 
-class TranscriptPayload(BaseModel):
+class PostJobPayload(BaseModel):
     url: AnyHttpUrl
     type: dtos.JobType
+    language: Optional[str]
 
 
 @api_router.post("/jobs", response_model=dtos.Job, status_code=201)
 def create_job(
-    payload: TranscriptPayload, session: Session = Depends(get_session)
+    payload: PostJobPayload,
+    session: Session = Depends(get_session),
 ) -> models.Job:
-    job = models.Job(url=payload.url, status=dtos.JobStatus.create, type=payload.type)
-    session.add(job)
-    session.flush()
+    # create a job with status "create" and save it to the database.
+    job = models.Job(
+        url=payload.url,
+        status=dtos.JobStatus.create,
+        type=payload.type,
+        config={"language": payload.language} if payload.language else None,
+    )
 
+    session.add(job)
+    session.commit()
+
+    # queue an async transcription task.
+    # we use a signature here to allow full separation of
+    # worker processes and dependencies.
+    transcribe = celery.signature("app.worker.main.transcribe")
+    # TODO: catch delivery errors.
     transcribe.delay(job.id)
 
     return job

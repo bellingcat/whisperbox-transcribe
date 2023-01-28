@@ -1,8 +1,8 @@
 """add_job_tables
 
-Revision ID: bb249ed79907
+Revision ID: 426b6bdc3360
 Revises:
-Create Date: 2023-01-17 14:30:30.920466
+Create Date: 2023-01-27 17:55:21.758828
 
 """
 import sqlalchemy as sa
@@ -10,7 +10,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "bb249ed79907"
+revision = "426b6bdc3360"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,12 +23,21 @@ def upgrade() -> None:
         sa.Column("url", sa.String(length=2048), nullable=True),
         sa.Column(
             "status",
-            sa.Enum("create", "error", "processing", "success", name="jobstatus"),
+            sa.Enum("create", "processing", "error", "success", name="jobstatus"),
             nullable=False,
         ),
-        sa.Column("type", sa.Enum("transcript", name="jobtype"), nullable=False),
+        sa.Column("config", sa.JSON(none_as_null=True), nullable=True),
+        sa.Column("meta", sa.JSON(none_as_null=True), nullable=True),
         sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+            "type",
+            sa.Enum("transcript", "translation", "language_detection", name="jobtype"),
+            nullable=False,
+        ),
+        sa.Column(
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
@@ -40,10 +49,15 @@ def upgrade() -> None:
         sa.Column("job_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("data", sa.JSON(none_as_null=True), nullable=True),
         sa.Column(
-            "type", sa.Enum("raw_transcript", name="artifacttype"), nullable=False
+            "type",
+            sa.Enum("raw_transcript", name="artifacttype"),
+            nullable=False,
         ),
         sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),

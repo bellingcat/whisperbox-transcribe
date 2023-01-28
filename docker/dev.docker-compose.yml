@@ -4,7 +4,7 @@ x-app-variables: &app-variables
   API_SECRET: a_very_secret_token
   DATABASE_URI: postgresql://postgres:postgres@postgres/whisperbox
   ENVIRONMENT: development
-  BROKER_URI: redis://redis:6379/0
+  BROKER_URL: redis://redis:6379/0
 
 services:
   postgres:

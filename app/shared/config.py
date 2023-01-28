@@ -9,10 +9,12 @@ class Settings(BaseSettings):
     ENVIRONMENT: str
 
     # derived settings
-    BROKER_URI: str
+    BROKER_URL: str
 
 
 if "pytest" in sys.modules:
-    settings = Settings(_env_file=".env.test", _env_file_encoding="utf-8")  # type: ignore
+    settings = Settings(
+        _env_file=".env.test", _env_file_encoding="utf-8"
+    )  # type: ignore
 else:
     settings = Settings()

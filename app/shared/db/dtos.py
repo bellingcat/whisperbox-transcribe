@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, List, Optional
 from uuid import UUID
 
 from pydantic import AnyHttpUrl, BaseModel
@@ -21,6 +21,8 @@ class ArtifactType(str, enum.Enum):
 
 class JobType(str, enum.Enum):
     transcript = "transcript"
+    translation = "translation"
+    language_detection = "language_detection"
 
 
 class JobStatus(str, enum.Enum):
@@ -30,8 +32,12 @@ class JobStatus(str, enum.Enum):
     success = "success"
 
 
-class JobMeta(BaseModel):
+class JobConfig(BaseModel):
     language: Optional[str]
+
+
+class JobMeta(BaseModel):
+    error: Optional[str]
     task_id: Optional[UUID]
 
 
@@ -40,10 +46,11 @@ class Job(WithDbFields):
     type: JobType
     url: AnyHttpUrl
     meta: Optional[JobMeta]
+    config: Optional[JobConfig]
 
 
 class Artifact(WithDbFields):
     # TODO: narrow type
-    data: Optional[Any]
+    data: Optional[List[Any]]
     job_id: UUID
     type: ArtifactType
