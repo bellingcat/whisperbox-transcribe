@@ -29,13 +29,10 @@ services:
   redis:
     container_name: whisperbox_redis
     image: redis:7-alpine
-    command: ["redis-server", "--save", "60 1"]
     ports:
       - 6379:6379
     networks:
       - app
-    volumes:
-      - redis-data:/data
 
   app:
     container_name: whisperbox_app
@@ -52,6 +49,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_started
 
@@ -64,10 +63,14 @@ services:
       - ../:/code
     environment: *app-variables
     depends_on:
-      - app
       - redis
     networks:
       - app
+    healthcheck:
+      test: ["CMD-SHELL", "celery inspect ping -A app.worker.main.transcribe -d celery@$$HOSTNAME"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   flower:
     container_name: whisperbox_flower
@@ -82,7 +85,6 @@ services:
 
 volumes:
   postgres-data:
-  redis-data:
 
 networks:
   app:

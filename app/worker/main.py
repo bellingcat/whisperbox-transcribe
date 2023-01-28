@@ -1,6 +1,7 @@
 from asyncio.log import logger
 from uuid import UUID
 
+from celery import Task
 from sqlalchemy.orm import Session
 
 import app.shared.db.dtos as dtos
@@ -12,18 +13,24 @@ from app.worker.strategies.local import LocalStrategy
 celery = get_celery_binding()
 
 
-def update_job_status(db: Session, job: models.Job, status: dtos.JobStatus) -> None:
-    job.status = status
-    db.commit()
-
-
-@celery.task()
-def transcribe(job_id: UUID) -> None:
+@celery.task(
+    bind=True,
+    soft_time_limit=2 * 60 * 60 # TODO: make configurable
+)
+def transcribe(self: Task, job_id: UUID) -> None:
     try:
         db: Session = SessionLocal()
         job = db.query(models.Job).filter(models.Job.id == job_id).one()
 
-        update_job_status(db, job, dtos.JobStatus.processing)
+        if job.status == dtos.JobStatus.error or job.status == dtos.JobStatus.success:
+            logger.warn("[{job.id}]: Received job that has already been processed, abort.")
+            return
+
+        job.meta = {"task_id": self.request.id}
+        job.status = dtos.JobStatus.processing
+        db.commit()
+
+        logger.info(f"[{job.id}]: set task to status processing.")
 
         # pick a transcription strategy.
         # currently only `local` is supported.
@@ -36,20 +43,30 @@ def transcribe(job_id: UUID) -> None:
         # currently only `transcribe` is supported.
         if job.type == dtos.JobType.transcript:
             result = strategy.transcribe()
+            logger.info(f"[{job.id}]: successfully transcribed audio.")
         elif job.type == dtos.JobType.translation:
             result = strategy.translate()
+            logger.info(f"[{job.id}]: successfully translated audio.")
         else:
             result = strategy.detect_language()
 
         artifact = models.Artifact(
             job_id=job.id, data=result, type=dtos.ArtifactType.raw_transcript
         )
+
         db.add(artifact)
         db.commit()
+        logger.info(f"[{job.id}]: successfully stored artifact.")
 
-        update_job_status(db, job, dtos.JobStatus.success)
+        job.status = dtos.JobStatus.success
+        db.commit()
+
+        logger.info(f"[{job.id}]: set task to status success.")
     except Exception as e:
-        logger.error(e)
-        update_job_status(db, job, dtos.JobStatus.error)
+        if job and db:
+            job.meta = { **job.meta, "error": str(e) }
+            job.status = dtos.JobStatus.error
+            db.commit()
+            raise(e)
     finally:
         db.close()

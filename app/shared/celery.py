@@ -4,6 +4,6 @@ from app.shared.config import settings
 
 
 def get_celery_binding() -> Celery:
-    celery = Celery("tasks")
+    celery = Celery()
     celery.conf.broker_url = settings.BROKER_URL
     return celery

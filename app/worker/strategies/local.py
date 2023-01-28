@@ -1,6 +1,6 @@
 import os
-import shutil
 import tempfile
+from asyncio.log import logger
 from os import path
 from typing import Any, List, Literal, Optional
 from uuid import UUID
@@ -26,27 +26,21 @@ class LocalStrategy:
         self.job_id = job_id
         self.url = url
         self.config = config
+        logger.info(f"[{self.job_id}]: initialized local strategy.")
 
     def transcribe(self) -> List[Any]:
-        result = self.run_whisper(self._download(), "transcribe")
-        self._cleanup()
-        return result
+        return self.run_whisper(self._download(), "transcribe")
 
     def translate(self) -> List[Any]:
-        result = self.run_whisper(self._download(), "translate")
-        self._cleanup()
-        return result
+        return self.run_whisper(self._download(), "translate")
 
     def detect_language(self) -> List[Any]:
         raise NotImplementedError("detect_language has not been implemented yet.")
 
     def _download(self) -> str:
-        dirname = self._get_tmp_dir()
-        filename = path.join(dirname, "media.mp3")
-
         # re-create folder.
-        shutil.rmtree(dirname, ignore_errors=True)
-        os.makedirs(dirname)
+        filename = self._get_tmp_file()
+        self._cleanup()
 
         # stream media to disk.
         with requests.get(self.url, stream=True) as r:
@@ -58,21 +52,29 @@ class LocalStrategy:
         return filename
 
     def run_whisper(self, filepath: str, task: str) -> List[Any]:
-        language = self.config.language if self.config else None
-        decode_opts = DecodeOptions(task=task, language=language)
-        model = load_model("small", download_root="/models")
+        try:
+            language = self.config.language if self.config else None
+            model = load_model("small", download_root="/models")
 
-        result = model.transcribe(
-            filepath, condition_on_previous_text=False, **decode_opts.dict()
-        )
+            result = model.transcribe(
+                filepath,
+                condition_on_previous_text=False,
+                **DecodeOptions(task=task, language=language).dict(),
+            )
 
-        return result["segments"]
+            return result["segments"]
+        finally:
+            self._cleanup()
 
-    def _get_tmp_dir(self) -> str:
-        return path.join(tempfile.gettempdir(), str(self.job_id))
+    def _get_tmp_file(self) -> str:
+        tmp = tempfile.gettempdir()
+        return path.join(tmp, str(self.job_id))
 
     def _cleanup(self) -> None:
-        shutil.rmtree(self._get_tmp_dir(), ignore_errors=True)
+        try:
+            os.remove(self._get_tmp_file())
+        except OSError:
+            pass
 
     def _convert(self) -> None:
         pass

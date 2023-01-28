@@ -1,8 +1,10 @@
+from asyncio.log import logger
 from typing import Dict, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Path
 from pydantic import AnyHttpUrl, BaseModel
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 import app.shared.db.dtos as dtos
@@ -15,6 +17,15 @@ app = FastAPI()
 celery = get_celery_binding()
 
 api_router = APIRouter(prefix="/api/v1", dependencies=[Depends(authenticate_api_key)])
+
+
+def queue_task(job: models.Job) -> None:
+    # queue an async transcription task.
+    # we use a signature here to allow full separation of
+    # worker processes and dependencies.
+    transcribe = celery.signature("app.worker.main.transcribe")
+    # TODO: catch delivery errors.
+    transcribe.delay(job.id)
 
 
 @api_router.get("/")
@@ -99,3 +110,23 @@ def delete_transcript(
 
 
 app.include_router(api_router)
+
+# TODO:
+# we could use `acks_late` to handle this scenario within celery itself.
+# the reason this does not work well in our case is that `visibility_timeout`
+# needs to be very high since whisper workers can be long running.
+# doing this application-side bears the risk of poison pilling the worker though,
+# implement a workaround with an acceptable trade-off. (=> retry only once?)
+@app.on_event("startup")
+def on_startup() -> None:
+    session = get_session().__next__()
+
+    jobs = (
+        session.query(models.Job)
+            .filter(or_(models.Job.status == dtos.JobStatus.processing, models.Job.status == dtos.JobStatus.create))
+            .order_by(models.Job.created_at)
+    ).all()
+
+    logger.info(f"Re-queueing {len(jobs)} jobs.")
+    for job in jobs:
+        queue_task(job)
