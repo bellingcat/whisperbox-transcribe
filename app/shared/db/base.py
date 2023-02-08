@@ -3,7 +3,7 @@ from typing import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.shared.config import settings
+from app.shared.settings import settings
 
 engine = create_engine(settings.DATABASE_URI, connect_args={"check_same_thread": False})
 

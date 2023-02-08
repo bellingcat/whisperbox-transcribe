@@ -3,7 +3,7 @@ from hmac import compare_digest
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 
-from app.shared.config import settings
+from app.shared.settings import settings
 
 
 def authenticate_api_key(

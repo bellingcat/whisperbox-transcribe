@@ -1,6 +1,6 @@
 from celery import Celery
 
-from app.shared.config import settings
+from app.shared.settings import settings
 
 
 def get_celery_binding() -> Celery:
