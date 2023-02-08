@@ -26,10 +26,10 @@ Builds and starts the docker containers.
 
 ```
 # Bindings
-http://localhost:8000 => API
+http://localhost:5555      => Celery dashboard
+http://localhost:8000      => API
 http://localhost:8000/docs => API docs
-http://localhost:5555 => Celery dashboard
-./whisperbox.sqlite => Database
+./whisperbox.sqlite        => Database
 ```
 
 ## Destroy
