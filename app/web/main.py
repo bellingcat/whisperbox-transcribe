@@ -7,7 +7,7 @@ from pydantic import AnyHttpUrl, BaseModel
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-import app.shared.db.dtos as dtos
+import app.shared.db.schemas as schemas
 import app.shared.db.models as models
 from app.shared.celery import get_celery_binding
 from app.shared.db.base import get_session
@@ -35,11 +35,11 @@ def api_root() -> None:
 
 class PostJobPayload(BaseModel):
     url: AnyHttpUrl
-    type: dtos.JobType
+    type: schemas.JobType
     language: Optional[str]
 
 
-@api_router.post("/jobs", response_model=dtos.Job, status_code=201)
+@api_router.post("/jobs", response_model=schemas.Job, status_code=201)
 def create_job(
     payload: PostJobPayload,
     session: Session = Depends(get_session),
@@ -47,7 +47,7 @@ def create_job(
     # create a job with status "create" and save it to the database.
     job = models.Job(
         url=payload.url,
-        status=dtos.JobStatus.create,
+        status=schemas.JobStatus.create,
         type=payload.type,
         config={"language": payload.language} if payload.language else None,
     )
@@ -65,9 +65,9 @@ def create_job(
     return job
 
 
-@api_router.get("/jobs", response_model=List[dtos.Job])
+@api_router.get("/jobs", response_model=List[schemas.Job])
 def get_transcripts(
-    type: Optional[dtos.JobType] = None, session: Session = Depends(get_session)
+    type: Optional[schemas.JobType] = None, session: Session = Depends(get_session)
 ) -> List[models.Job]:
     query = session.query(models.Job)
 
@@ -77,7 +77,7 @@ def get_transcripts(
     return query.all()
 
 
-@api_router.get("/jobs/{id}", response_model=dtos.Job)
+@api_router.get("/jobs/{id}", response_model=schemas.Job)
 def get_transcript(
     id: UUID = Path(), session: Session = Depends(get_session)
 ) -> Optional[models.Job]:
@@ -87,7 +87,7 @@ def get_transcript(
     return job
 
 
-@api_router.get("/jobs/{id}/artifacts", response_model=List[dtos.Artifact])
+@api_router.get("/jobs/{id}/artifacts", response_model=List[schemas.Artifact])
 def get_artifacts_for_job(
     id: UUID = Path(), session: Session = Depends(get_session)
 ) -> List[models.Artifact]:
@@ -125,8 +125,8 @@ def on_startup() -> None:
         session.query(models.Job)
         .filter(
             or_(
-                models.Job.status == dtos.JobStatus.processing,
-                models.Job.status == dtos.JobStatus.create,
+                models.Job.status == schemas.JobStatus.processing,
+                models.Job.status == schemas.JobStatus.create,
             )
         )
         .order_by(models.Job.created_at)

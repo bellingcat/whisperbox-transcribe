@@ -4,9 +4,9 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-import app.shared.db.dtos as dtos
+import app.shared.db.schemas as schemas
 import app.shared.db.models as models
-from app.shared.db.dtos import JobStatus, JobType
+from app.shared.db.schemas import JobStatus, JobType
 from app.web.main import app
 
 client = TestClient(app)
@@ -86,7 +86,7 @@ def test_get_artifact_pass(
     auth_headers: Dict[str, str], db_session: Session, mock_job: models.Job
 ) -> None:
     artifact = models.Artifact(
-        data=[], job_id=mock_job.id, type=dtos.ArtifactType.raw_transcript
+        data=[], job_id=mock_job.id, type=schemas.ArtifactType.raw_transcript
     )
 
     db_session.add(artifact)

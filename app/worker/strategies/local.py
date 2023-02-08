@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from whisper import load_model
 
-import app.shared.db.dtos as dtos
+import app.shared.db.schemas as schemas
 
 
 class DecodeOptions(BaseModel):
@@ -20,7 +20,7 @@ class DecodeOptions(BaseModel):
 
 class LocalStrategy:
     def __init__(
-        self, db: Session, job_id: UUID, url: str, config: Optional[dtos.JobConfig]
+        self, db: Session, job_id: UUID, url: str, config: Optional[schemas.JobConfig]
     ):
         self.db = db
         self.job_id = job_id
