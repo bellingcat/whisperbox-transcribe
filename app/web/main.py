@@ -1,5 +1,5 @@
 from asyncio.log import logger
-from typing import Dict, List, Optional
+from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Path
@@ -29,8 +29,8 @@ def queue_task(job: models.Job) -> None:
 
 
 @api_router.get("/")
-def api_root() -> Dict:
-    return {}
+def api_root() -> None:
+    return None
 
 
 class PostJobPayload(BaseModel):
