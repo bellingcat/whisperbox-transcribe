@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
 import app.shared.db.models as models
-from app.shared.settings import settings
 from app.shared.db.base import SessionLocal, engine, get_session
+from app.shared.settings import settings
 from app.web.main import app
 
 

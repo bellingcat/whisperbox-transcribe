@@ -4,8 +4,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-import app.shared.db.schemas as schemas
 import app.shared.db.models as models
+import app.shared.db.schemas as schemas
 from app.shared.db.schemas import JobStatus, JobType
 from app.web.main import app
 
@@ -77,12 +77,13 @@ def test_get_job_not_found(auth_headers: Dict[str, str], mock_job: models.Job) -
         "/api/v1/jobs/c8ecf5ea-77cf-48a2-9ecd-199ef35e0ccb",
         headers=auth_headers,
     )
+
     assert res.status_code == 404
 
 
 # GET /api/v1/jobs/:id/artifacts
 # ---
-def test_get_artifact_pass(
+def test_get_artifacts_pass(
     auth_headers: Dict[str, str], db_session: Session, mock_job: models.Job
 ) -> None:
     artifact = models.Artifact(
@@ -102,14 +103,16 @@ def test_get_artifact_pass(
     assert res.json()[0]["id"] == str(artifact.id)
 
 
-def test_get_artifact_not_found(
+def test_get_artifacts_not_found(
     auth_headers: Dict[str, str], mock_job: models.Job
 ) -> None:
     res = client.get(
         f"/api/v1/jobs/{mock_job.id}/artifacts",
         headers=auth_headers,
     )
-    assert res.status_code == 404
+
+    assert len(res.json()) == 0
+    assert res.status_code == 200
 
 
 # DELETE /api/v1/jobs

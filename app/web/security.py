@@ -1,16 +1,16 @@
 from hmac import compare_digest
 
 from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.shared.settings import settings
 
 
 def authenticate_api_key(
-    token: str = Depends(OAuth2PasswordBearer(tokenUrl="token")),
+    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
 ) -> None:
-    if not token:
-        raise HTTPException(status_code=422)
     # use compare_digest to counter timing attacks.
-    if not compare_digest(settings.API_SECRET, token):
+    if not credentials or not compare_digest(
+        settings.API_SECRET, credentials.credentials
+    ):
         raise HTTPException(status_code=401)

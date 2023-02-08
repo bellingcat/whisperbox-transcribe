@@ -3,20 +3,24 @@ from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Path
-from pydantic import AnyHttpUrl, BaseModel
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-import app.shared.db.schemas as schemas
 import app.shared.db.models as models
+import app.shared.db.schemas as schemas
 from app.shared.celery import get_celery_binding
 from app.shared.db.base import get_session
+from app.web.dtos import DEFAULT_RESPONSES, DetailResponse, PostJobPayload
 from app.web.security import authenticate_api_key
 
 app = FastAPI()
 celery = get_celery_binding()
 
-api_router = APIRouter(prefix="/api/v1", dependencies=[Depends(authenticate_api_key)])
+api_router = APIRouter(
+    prefix="/api/v1",
+    dependencies=[Depends(authenticate_api_key)],
+    responses={**DEFAULT_RESPONSES},
+)
 
 
 def queue_task(job: models.Job) -> None:
@@ -28,15 +32,9 @@ def queue_task(job: models.Job) -> None:
     transcribe.delay(job.id)
 
 
-@api_router.get("/")
+@api_router.get("/", response_model=None, status_code=204)
 def api_root() -> None:
     return None
-
-
-class PostJobPayload(BaseModel):
-    url: AnyHttpUrl
-    type: schemas.JobType
-    language: Optional[str]
 
 
 @api_router.post("/jobs", response_model=schemas.Job, status_code=201)
@@ -77,7 +75,11 @@ def get_transcripts(
     return query.all()
 
 
-@api_router.get("/jobs/{id}", response_model=schemas.Job)
+@api_router.get(
+    "/jobs/{id}",
+    response_model=schemas.Job,
+    responses={404: {"model": DetailResponse, "description": "Not authenticated"}},
+)
 def get_transcript(
     id: UUID = Path(), session: Session = Depends(get_session)
 ) -> Optional[models.Job]:
@@ -94,9 +96,6 @@ def get_artifacts_for_job(
     artifacts = (
         session.query(models.Artifact).filter(models.Artifact.job_id == str(id))
     ).all()
-
-    if not len(artifacts):
-        raise HTTPException(status_code=404)
 
     return artifacts
 

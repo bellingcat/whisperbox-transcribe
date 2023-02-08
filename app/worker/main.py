@@ -4,8 +4,8 @@ from uuid import UUID
 from celery import Task
 from sqlalchemy.orm import Session
 
-import app.shared.db.schemas as schemas
 import app.shared.db.models as models
+import app.shared.db.schemas as schemas
 from app.shared.celery import get_celery_binding
 from app.shared.db.base import SessionLocal
 from app.worker.strategies.local import LocalStrategy
@@ -19,7 +19,10 @@ def transcribe(self: Task, job_id: UUID) -> None:
         db: Session = SessionLocal()
         job = db.query(models.Job).filter(models.Job.id == job_id).one()
 
-        if job.status == schemas.JobStatus.error or job.status == schemas.JobStatus.success:
+        if (
+            job.status == schemas.JobStatus.error
+            or job.status == schemas.JobStatus.success
+        ):
             logger.warn(
                 "[{job.id}]: Received job that has already been processed, abort."
             )
