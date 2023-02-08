@@ -12,5 +12,8 @@
   },
   "docker-compose": {
     "enabled": false
+  },
+  "pyenv": {
+    "enabled": false
   }
 }
