@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional
 
-from sqlalchemy import JSON, Column, DateTime, Enum, ForeignKey, String, func
+from sqlalchemy import JSON, VARCHAR, Column, DateTime, Enum, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import Mapped, declarative_mixin  # type: ignore
@@ -26,7 +26,7 @@ class WithStandardFields:
     @declared_attr
     def id(cls) -> Mapped[UUID]:
         return Column(
-            UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4
+            VARCHAR(36), primary_key=True, index=True, default=lambda: str(uuid.uuid4())
         )
 
 
@@ -44,7 +44,9 @@ class Artifact(Base, WithStandardFields):
     __tablename__ = "artifacts"
 
     job_id = Column(
-        UUID(as_uuid=True), ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False
+        VARCHAR(36),
+        ForeignKey("jobs.id", ondelete="CASCADE"),
+        nullable=False,
     )
 
     data = Column(JSON(none_as_null=True))

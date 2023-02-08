@@ -5,7 +5,6 @@ version = "0.0.1"
 
 dependencies=[
   "celery[redis] ==5.2.7",
-  "psycopg2 ==2.9.5",
   "sqlalchemy[mypy] == 1.4.45",
   "pydantic ==1.10.4"
 ]
@@ -34,9 +33,9 @@ lint = [
 test = [
   "httpx",
   "sqlalchemy-stubs",
-  "sqlalchemy-utils",
+  "sqlalchemy-utils ==0.39.0",
   "python-dotenv",
-  "pytest"
+  "pytest",
 ]
 
 worker_dev = [

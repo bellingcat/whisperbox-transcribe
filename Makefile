@@ -1,8 +1,9 @@
 clean:
-	docker-compose -f docker/dev.docker-compose.yml down --volumes --remove-orphans
+	docker-compose -f docker/dev/docker-compose.yml down --volumes --remove-orphans
+
 dev:
-	docker-compose -f docker/dev.docker-compose.yml build --progress tty
-	docker-compose -f docker/dev.docker-compose.yml up --remove-orphans
+	docker-compose -f docker/dev/docker-compose.yml build --progress tty
+	docker-compose -f docker/dev/docker-compose.yml up --remove-orphans
 
 fmt:
 	black app
@@ -14,3 +15,7 @@ lint:
 
 test:
 	pytest
+
+run:
+	docker-compose -f docker/prod/docker-compose.yml build --progress tty
+	docker-compose -f docker/prod/docker-compose.yml up --remove-orphans

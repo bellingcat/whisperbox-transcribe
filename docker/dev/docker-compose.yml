@@ -1,0 +1,71 @@
+version: "3.8"
+
+x-app-variables: &app-variables
+  API_SECRET: a_very_secret_token
+  DATABASE_URI: sqlite:////whisperbox.sqlite
+  ENVIRONMENT: development
+  BROKER_URL: redis://redis:6379/0
+  WHISPER_MODEL: small
+
+services:
+  redis:
+    container_name: whisperbox_redis_dev
+    image: redis:7-alpine
+    ports:
+      - 6379:6379
+    networks:
+      - app
+    resources:
+      limits:
+        memory: 128M
+
+  web:
+    container_name: whisperbox_web_dev
+    build:
+      context: ../../
+      dockerfile: docker/dev/web.Dockerfile
+    environment: *app-variables
+    ports:
+      - "8000:80"
+    networks:
+      - app
+    volumes:
+      - ../../:/code
+    depends_on:
+      redis:
+        condition: service_started
+
+  worker:
+    build:
+      context: ../../
+      dockerfile: docker/dev/worker.Dockerfile
+      args:
+        WHISPER_MODEL: small
+    container_name: whisperbox_worker_dev
+    volumes:
+      - ../../:/code
+    environment: *app-variables
+    depends_on:
+      - redis
+    networks:
+      - app
+    healthcheck:
+      test: ["CMD-SHELL", "celery inspect ping -A app.worker.main.transcribe -d celery@$$HOSTNAME"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  flower:
+    container_name: whisperbox_flower_dev
+    image: mher/flower
+    command: celery --broker redis://redis:6379/0 flower --port=5555
+    ports:
+      - 5555:5555
+    depends_on:
+      - redis
+    networks:
+      - app
+
+networks:
+  app:
+    driver: bridge

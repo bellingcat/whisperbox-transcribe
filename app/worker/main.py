@@ -13,17 +13,16 @@ from app.worker.strategies.local import LocalStrategy
 celery = get_celery_binding()
 
 
-@celery.task(
-    bind=True,
-    soft_time_limit=2 * 60 * 60 # TODO: make configurable
-)
+@celery.task(bind=True, soft_time_limit=2 * 60 * 60)  # TODO: make configurable
 def transcribe(self: Task, job_id: UUID) -> None:
     try:
         db: Session = SessionLocal()
         job = db.query(models.Job).filter(models.Job.id == job_id).one()
 
         if job.status == dtos.JobStatus.error or job.status == dtos.JobStatus.success:
-            logger.warn("[{job.id}]: Received job that has already been processed, abort.")
+            logger.warn(
+                "[{job.id}]: Received job that has already been processed, abort."
+            )
             return
 
         job.meta = {"task_id": self.request.id}
@@ -51,7 +50,7 @@ def transcribe(self: Task, job_id: UUID) -> None:
             result = strategy.detect_language()
 
         artifact = models.Artifact(
-            job_id=job.id, data=result, type=dtos.ArtifactType.raw_transcript
+            job_id=str(job.id), data=result, type=dtos.ArtifactType.raw_transcript
         )
 
         db.add(artifact)
@@ -64,9 +63,9 @@ def transcribe(self: Task, job_id: UUID) -> None:
         logger.info(f"[{job.id}]: set task to status success.")
     except Exception as e:
         if job and db:
-            job.meta = { **job.meta, "error": str(e) }
+            job.meta = {**job.meta.__dict__, "error": str(e)}
             job.status = dtos.JobStatus.error
             db.commit()
-            raise(e)
+            raise (e)
     finally:
         db.close()

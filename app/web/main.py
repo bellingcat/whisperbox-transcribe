@@ -81,7 +81,7 @@ def get_transcripts(
 def get_transcript(
     id: UUID = Path(), session: Session = Depends(get_session)
 ) -> Optional[models.Job]:
-    job = session.query(models.Job).filter(models.Job.id == id).one_or_none()
+    job = session.query(models.Job).filter(models.Job.id == str(id)).one_or_none()
     if not job:
         raise HTTPException(status_code=404)
     return job
@@ -92,7 +92,7 @@ def get_artifacts_for_job(
     id: UUID = Path(), session: Session = Depends(get_session)
 ) -> List[models.Artifact]:
     artifacts = (
-        session.query(models.Artifact).filter(models.Artifact.job_id == id)
+        session.query(models.Artifact).filter(models.Artifact.job_id == str(id))
     ).all()
 
     if not len(artifacts):
@@ -105,14 +105,14 @@ def get_artifacts_for_job(
 def delete_transcript(
     id: UUID = Path(), session: Session = Depends(get_session)
 ) -> None:
-    session.query(models.Job).filter(models.Job.id == id).delete()
+    session.query(models.Job).filter(models.Job.id == str(id)).delete()
     return None
 
 
 app.include_router(api_router)
 
-# TODO:
-# we could use `acks_late` to handle this scenario within celery itself.
+
+# TODO: we could use `acks_late` to handle this scenario within celery itself.
 # the reason this does not work well in our case is that `visibility_timeout`
 # needs to be very high since whisper workers can be long running.
 # doing this application-side bears the risk of poison pilling the worker though,
@@ -123,10 +123,15 @@ def on_startup() -> None:
 
     jobs = (
         session.query(models.Job)
-            .filter(or_(models.Job.status == dtos.JobStatus.processing, models.Job.status == dtos.JobStatus.create))
-            .order_by(models.Job.created_at)
+        .filter(
+            or_(
+                models.Job.status == dtos.JobStatus.processing,
+                models.Job.status == dtos.JobStatus.create,
+            )
+        )
+        .order_by(models.Job.created_at)
     ).all()
 
-    logger.info(f"Re-queueing {len(jobs)} jobs.")
+    logger.info(f"Requeueing {len(jobs)} jobs.")
     for job in jobs:
         queue_task(job)

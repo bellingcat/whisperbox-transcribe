@@ -1,16 +1,15 @@
 """add_job_tables
 
-Revision ID: 426b6bdc3360
+Revision ID: dc8582aea0bc
 Revises:
-Create Date: 2023-01-27 17:55:21.758828
+Create Date: 2023-02-08 12:12:00.808816
 
 """
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "426b6bdc3360"
+revision = "dc8582aea0bc"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -30,23 +29,28 @@ def upgrade() -> None:
         sa.Column("meta", sa.JSON(none_as_null=True), nullable=True),
         sa.Column(
             "type",
-            sa.Enum("transcript", "translation", "language_detection", name="jobtype"),
+            sa.Enum(
+                "transcript",
+                "translation",
+                "language_detection",
+                name="jobtype",
+            ),
             nullable=False,
         ),
         sa.Column(
             "created_at",
             sa.DateTime(),
-            server_default=sa.text("now()"),
+            server_default=sa.text("(CURRENT_TIMESTAMP)"),
             nullable=False,
         ),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
-        sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("id", sa.VARCHAR(length=36), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_jobs_id"), "jobs", ["id"], unique=False)
     op.create_table(
         "artifacts",
-        sa.Column("job_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("job_id", sa.VARCHAR(length=36), nullable=False),
         sa.Column("data", sa.JSON(none_as_null=True), nullable=True),
         sa.Column(
             "type",
@@ -56,11 +60,11 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(),
-            server_default=sa.text("now()"),
+            server_default=sa.text("(CURRENT_TIMESTAMP)"),
             nullable=False,
         ),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
-        sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("id", sa.VARCHAR(length=36), nullable=False),
         sa.ForeignKeyConstraint(["job_id"], ["jobs.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
