@@ -7,9 +7,10 @@ from sqlalchemy.orm import Session
 import app.shared.db.dtos as dtos
 import app.shared.db.models as models
 from app.shared.db.dtos import JobStatus, JobType
-from app.web.main import app, celery
+from app.web.main import app
 
 client = TestClient(app)
+
 
 @pytest.fixture(name="mock_job", scope="function", autouse=False)
 def mock_job(db_session: Session) -> models.Job:
