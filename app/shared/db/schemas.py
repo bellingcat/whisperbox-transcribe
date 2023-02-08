@@ -49,8 +49,20 @@ class Job(WithDbFields):
     config: Optional[JobConfig]
 
 
+class RawTranscript(BaseModel):
+    id: int
+    seek: int
+    start: float
+    end: float
+    text: str
+    tokens: List[int]
+    temperature: float
+    avg_logprob: float
+    compression_ratio: float
+    no_speech_prob: float
+
+
 class Artifact(WithDbFields):
-    # TODO: narrow type
-    data: Optional[List[Any]]
+    data: Optional[List[RawTranscript]]
     job_id: UUID
     type: ArtifactType
