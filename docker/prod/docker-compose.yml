@@ -1,0 +1,69 @@
+version: "3.8"
+
+x-app-variables: &app-variables
+  DATABASE_URI: sqlite:////etc/whisperbox/data/whisperbox.sqlite
+  ENVIRONMENT: production
+  BROKER_URL: redis://redis:6379/0
+
+services:
+  redis:
+    container_name: whisperbox_redis
+    image: redis:7-alpine
+    ports:
+      - 6379:6379
+    networks:
+      - app
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  worker:
+    container_name: whisperbox_worker
+    build:
+      context: ../../
+      # ENABLE GPU SUPPORT
+      # dockerfile: docker/prod/worker.gpu.Dockerfile
+      dockerfile: docker/prod/worker.Dockerfile
+    environment: *app-variables
+    env_file: .env
+    volumes:
+      - whisperbox-data:/etc/whisperbox/data
+    networks:
+      - app
+    depends_on:
+      - redis
+    # ENABLE GPU SUPPORT
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # TODO: reverse proxy
+  web:
+    container_name: whisperbox_web
+    build:
+      context: ../../
+      dockerfile: docker/prod/web.Dockerfile
+    environment: *app-variables
+    env_file: .env
+    ports:
+      - "8000:8000"
+    networks:
+      - app
+    depends_on:
+      - worker
+    volumes:
+      - whisperbox-data:/etc/whisperbox/data
+      - whisper-models:/models
+
+volumes:
+  whisperbox-data:
+  whisper-models:
+
+networks:
+  app:
+    driver: bridge

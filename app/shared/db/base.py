@@ -1,6 +1,5 @@
 from typing import Any, Generator
 
-from sqlalchemy.engine import Connection
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -10,7 +9,7 @@ engine = create_engine(settings.DATABASE_URI, connect_args={"check_same_thread":
 
 
 @event.listens_for(engine, "connect")
-def set_sqlite_pragma(conn: Connection, _: Any) -> None:
+def set_sqlite_pragma(conn: Any, _: Any) -> None:
     cursor = conn.cursor()
     cursor.execute("PRAGMA journal_mode=WAL")
     cursor.close()
