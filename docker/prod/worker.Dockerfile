@@ -24,7 +24,7 @@ COPY app ./app
 ENV VIRTUAL_ENV /opt/venv
 ENV PATH /opt/venv/bin:$PATH
 
-# COPY scripts/download_model.py .
-# RUN chmod +x download_model.py && python download_model.py ${WHISPER_MODEL:-small}
+COPY scripts/download_model.py .
+RUN chmod +x download_model.py && python download_model.py ${WHISPER_MODEL:-small}
 
 CMD celery --app=app.worker.main.celery worker --loglevel=info --concurrency=1

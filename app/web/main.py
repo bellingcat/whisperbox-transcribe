@@ -16,12 +16,6 @@ from app.web.security import authenticate_api_key
 app = FastAPI()
 celery = get_celery_binding()
 
-api_router = APIRouter(
-    prefix="/api/v1",
-    dependencies=[Depends(authenticate_api_key)],
-    responses={**DEFAULT_RESPONSES},
-)
-
 
 def queue_task(job: models.Job) -> None:
     # queue an async transcription task.
@@ -30,6 +24,13 @@ def queue_task(job: models.Job) -> None:
     transcribe = celery.signature("app.worker.main.transcribe")
     # TODO: catch delivery errors.
     transcribe.delay(job.id)
+
+
+api_router = APIRouter(
+    prefix="/api/v1",
+    dependencies=[Depends(authenticate_api_key)],
+    responses={**DEFAULT_RESPONSES},
+)
 
 
 @api_router.get("/", response_model=None, status_code=204)

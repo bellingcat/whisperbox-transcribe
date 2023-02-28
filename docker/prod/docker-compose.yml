@@ -22,7 +22,7 @@ services:
     container_name: whisperbox_worker
     build:
       context: ../../
-      # ENABLE GPU SUPPORT
+      # <ENABLE GPU SUPPORT>
       # dockerfile: docker/prod/worker.gpu.Dockerfile
       dockerfile: docker/prod/worker.Dockerfile
     environment: *app-variables
@@ -33,7 +33,7 @@ services:
       - app
     depends_on:
       - redis
-    # ENABLE GPU SUPPORT
+    # <ENABLE GPU SUPPORT>
     # deploy:
     #   resources:
     #     reservations:
@@ -55,7 +55,8 @@ services:
     networks:
       - app
     depends_on:
-      - worker
+      worker:
+        condition: service_healthy
     volumes:
       - whisperbox-data:/etc/whisperbox/data
       - whisper-models:/models
