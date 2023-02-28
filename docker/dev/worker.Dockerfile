@@ -1,6 +1,6 @@
 FROM python:3.10
 
-ARG WHISPER_MODEL
+ARG WHISPER_MODELS
 
 WORKDIR /code
 
@@ -13,7 +13,7 @@ COPY --from=mwader/static-ffmpeg:5.1.2 /ffprobe /usr/local/bin/
 COPY pyproject.toml .
 RUN pip install --no-cache-dir --user .[worker,worker_dev]
 
-COPY scripts/download_model.py .
-RUN chmod +x download_model.py && python download_model.py ${WHISPER_MODEL}
+COPY scripts/download_models.py .
+RUN python download_models.py ${WHISPER_MODELS}
 
-ENTRYPOINT ["watchmedo", "auto-restart", "-d" , "app/worker", "-p", "*.py", "--recursive", "celery", "--", "--app=app.worker.main.celery", "worker", "--loglevel=info", "--concurrency=1"]
+CMD watchmedo auto-restart -d app/worker -p *.py --recursive celery -- --app=app.worker.main.celery worker --loglevel=info --concurrency=1

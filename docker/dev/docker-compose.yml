@@ -5,7 +5,7 @@ x-app-variables: &app-variables
   DATABASE_URI: sqlite:///./whisperbox.sqlite
   ENVIRONMENT: development
   BROKER_URL: redis://redis:6379/0
-  WHISPER_MODEL: small
+  WHISPER_MODELS: small
 
 services:
   redis:
@@ -41,7 +41,7 @@ services:
       context: ../../
       dockerfile: docker/dev/worker.Dockerfile
       args:
-        WHISPER_MODEL: small
+        WHISPER_MODELS: small
     container_name: whisperbox_worker_dev
     volumes:
       - ../../:/code
