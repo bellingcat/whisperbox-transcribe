@@ -31,7 +31,7 @@ tooling = [
   # tests
   "httpx",
   "sqlalchemy-utils ==0.39.0",
-  "python-dotenv ==0.21.1",
+  "python-dotenv ==1.0.0",
   "pytest ==7.2.1",
   # types
   "mypy ==1.0.0",
