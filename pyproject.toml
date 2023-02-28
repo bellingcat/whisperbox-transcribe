@@ -30,7 +30,7 @@ tooling = [
   "flake8 ==6.0.0",
   # tests
   "httpx",
-  "sqlalchemy-utils ==0.39.0",
+  "sqlalchemy-utils ==0.40.0",
   "python-dotenv ==1.0.0",
   "pytest ==7.2.1",
   # types
