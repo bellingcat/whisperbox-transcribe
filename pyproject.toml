@@ -36,7 +36,7 @@ tooling = [
   # types
   "mypy ==1.0.0",
   "sqlalchemy-stubs ==0.4",
-  "types-requests ==2.28.11.12"
+  "types-requests ==2.28.11.15"
 ]
 
 worker_dev = [
