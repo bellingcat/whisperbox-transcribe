@@ -163,4 +163,4 @@ cython_debug/
 .vscode
 .DS_Store
 
-whisperbox.sqlite
+whisperbox.sqlite*
