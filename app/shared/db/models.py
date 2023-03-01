@@ -3,8 +3,7 @@ from typing import Optional
 
 from sqlalchemy import JSON, VARCHAR, Column, DateTime, Enum, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.declarative import declarative_base, declared_attr
-from sqlalchemy.orm import Mapped, declarative_mixin  # type: ignore
+from sqlalchemy.orm import Mapped, declarative_base, declarative_mixin, declared_attr
 
 from .schemas import ArtifactType, JobStatus, JobType
 

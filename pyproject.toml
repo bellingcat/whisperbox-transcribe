@@ -5,7 +5,7 @@ version = "0.1.0"
 
 dependencies=[
   "celery[redis] ==5.2.7",
-  "sqlalchemy[mypy] ==1.4.46",
+  "sqlalchemy[mypy] ==2.0.4",
   "pydantic ==1.10.5"
 ]
 
@@ -36,7 +36,6 @@ tooling = [
   "pytest ==7.2.1",
   # types
   "mypy ==1.0.1",
-  "sqlalchemy-stubs ==0.4",
   "types-requests ==2.28.11.15"
 ]
 

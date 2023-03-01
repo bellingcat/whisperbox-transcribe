@@ -87,7 +87,7 @@ def test_get_artifacts_pass(
     auth_headers: Dict[str, str], db_session: Session, mock_job: models.Job
 ) -> None:
     artifact = models.Artifact(
-        data=[], job_id=mock_job.id, type=schemas.ArtifactType.raw_transcript
+        data=[], job_id=str(mock_job.id), type=schemas.ArtifactType.raw_transcript
     )
 
     db_session.add(artifact)
