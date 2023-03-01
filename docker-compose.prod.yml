@@ -7,9 +7,12 @@ services:
   worker:
     container_name: whisperbox_worker
     env_file: .env
+    # <GPU SUPPORT>
+    # build:
+    #   dockerfile: worker.gpu.Dockerfile
     volumes:
       - whisperbox-data:/etc/whisperbox/data
-    # <ENABLE GPU SUPPORT>
+    # <GPU SUPPORT>
     # deploy:
     #   resources:
     #     reservations:
@@ -23,3 +26,8 @@ services:
     env_file: .env
     volumes:
       - whisperbox-data:/etc/whisperbox/data
+    labels:
+      - "traefik.http.routers.web.entrypoints=web"
+
+volumes:
+  whisperbox-data:

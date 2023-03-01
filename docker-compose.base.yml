@@ -64,6 +64,3 @@ networks:
     driver: bridge
   traefik:
     driver: bridge
-
-volumes:
-  whisperbox-data:
