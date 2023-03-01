@@ -1,4 +1,4 @@
-# whisper-api
+# whisperbox-transcribe 
 
 > HTTP wrapper around [openai/whisper](https://github.com/openai/whisper).
 
@@ -12,9 +12,11 @@ OpenAPI documentation can be accessed via `<service_url>/docs`.
 
 ## Develop
 
-It is recommended to setup a virtual environment for python tooling. To install dependencies dependencies in your virtual env, run `pip install -e .[tooling,web,worker]`
+[docker compose](https://docs.docker.com/get-started/08_using_compose/) is required for local development.
 
-[docker-compose](https://docs.docker.com/get-started/08_using_compose/) is required for local development. Configuration such as `API_SECRET` can be adjusted in `./docker/dev/docker-compose.yml`.
+It is recommended to setup a virtual environment for python tooling. To install dependencies in your virtual env, run `pip install -e .[tooling,web,worker]`.
+
+Copy `.env.test` to `.env` to configure the service.
 
 ### Start
 
@@ -26,10 +28,10 @@ Builds and starts the docker containers.
 
 ```
 # Bindings
-http://localhost:5555      => Celery dashboard
-http://localhost:8000      => API
-http://localhost:8000/docs => API docs
-./whisperbox.sqlite        => Database
+http://localhost:5555                   => Celery dashboard
+http://whisperbox-transcribe.localhost  => API
+http://whisperbox-transcribe.localhost  => API docs
+./whisperbox-transcribe.sqlite          => Database
 ```
 
 ## Destroy

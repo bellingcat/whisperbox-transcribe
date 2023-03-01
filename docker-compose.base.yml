@@ -1,4 +1,5 @@
 version: "3.8"
+name: whisperbox-transcribe
 
 services:
   traefik:
@@ -9,7 +10,7 @@ services:
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=whisperbox_transcription_traefik"
+      - "--providers.docker.network=whisperbox-transcribe_traefik"
       - "--entrypoints.web.address=:80"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro

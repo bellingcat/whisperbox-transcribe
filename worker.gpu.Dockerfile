@@ -5,7 +5,7 @@ ENV PYTHON_VERSION=3.10
 
 ARG WHISPER_MODEL
 
-WORKDIR /etc/whisperbox
+WORKDIR /etc/whisperbox-transcribe
 
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get -qq update \

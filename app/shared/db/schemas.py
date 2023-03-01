@@ -40,9 +40,8 @@ class JobConfig(BaseModel):
     # TODO: limit to locales selected by whisper.
     language: Optional[str] = Field(
         description=(
-            "Spoken language in the media file."
-            "While optional, this can improve output "
-            "by selecting a language-specific model. (applies to 'en')"
+            "Spoken language in the media file. "
+            "While optional, this can improve output."
         )
     )
 

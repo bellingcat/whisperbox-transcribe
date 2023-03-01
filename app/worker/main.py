@@ -13,6 +13,7 @@ from app.worker.strategies.local import LocalStrategy
 
 celery = get_celery_binding()
 
+
 class TranscribeTask(Task):
     abstract = True
 
@@ -29,9 +30,7 @@ class TranscribeTask(Task):
         return self.run(*args, **kwargs)
 
 
-@celery.task(
-    base=TranscribeTask, bind=True, soft_time_limit=2 * 60 * 60
-)
+@celery.task(base=TranscribeTask, bind=True, soft_time_limit=2 * 60 * 60)
 def transcribe(self: Task, job_id: UUID) -> None:
     try:
         # runs in a separate thread => requires sqlite's WAL mode to be enabled.

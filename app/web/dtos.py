@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from pydantic import AnyHttpUrl, BaseModel, Field
 
@@ -9,7 +9,7 @@ class DetailResponse(BaseModel):
     detail: str
 
 
-DEFAULT_RESPONSES: Dict[int | str, Dict[str, Any]] = {
+DEFAULT_RESPONSES: Dict[Union[int, str], Dict[str, Any]] = {
     401: {"model": DetailResponse, "description": "Not authenticated"}
 }
 
@@ -21,13 +21,17 @@ class PostJobPayload(BaseModel):
         )
     )
 
-    type: schemas.JobType = Field(description="Type of this job.")
+    type: schemas.JobType = Field(
+        description="""Type of this job.
+        `transcript` uses the original language of the audio.
+        `translation` creates an automatic translation to english.
+        `language_detection` detects language from the first 30 seconds of audio."""
+    )
 
     # TODO: limit to locales selected by whisper.
     language: Optional[str] = Field(
         description=(
-            "Spoken language in the media file."
-            "While optional, this can improve output "
-            "by selecting a language-specific model. (applies to 'en')"
+            "Spoken language in the media file. "
+            "While optional, this can improve output when set."
         )
     )
