@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+  traefik:
+    image: "traefik:latest"
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=whisperbox_transcription_traefik"
+      - "--entrypoints.web.address=:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - web
+    networks:
+      - traefik
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - 6379:6379
+    networks:
+      - app
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  worker:
+    build:
+      context: .
+      dockerfile: worker.Dockerfile
+      args:
+        WHISPER_MODEL: tiny
+    networks:
+      - app
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD-SHELL", "celery -b redis://redis:6379/0 inspect ping -d celery@$$HOSTNAME"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: web.Dockerfile
+    networks:
+      - app
+      - traefik
+    depends_on:
+      worker:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.web.loadbalancer.server.port=8000"
+      - "traefik.http.routers.web.rule=(Host(`${DOMAIN}`))"
+networks:
+  app:
+    driver: bridge
+  traefik:
+    driver: bridge
+
+volumes:
+  whisperbox-data:

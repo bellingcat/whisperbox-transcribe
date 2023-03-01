@@ -10,7 +10,7 @@ RUN python -m venv /opt/venv && \
 
 FROM python:3.10 as python-deploy
 
-ARG WHISPER_MODELS
+ARG WHISPER_MODEL
 
 WORKDIR /etc/whisperbox
 
@@ -25,6 +25,6 @@ ENV VIRTUAL_ENV /opt/venv
 ENV PATH /opt/venv/bin:$PATH
 
 COPY scripts/download_models.py .
-RUN python download_models.py ${WHISPER_MODELS}
+RUN python download_models.py ${WHISPER_MODEL}
 
-CMD celery --app=app.worker.main.celery worker --loglevel=info --concurrency=1
+CMD celery --app=app.worker.main.celery worker --loglevel=info --concurrency=1 --pool=solo

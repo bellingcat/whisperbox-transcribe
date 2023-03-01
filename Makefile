@@ -1,9 +1,9 @@
 clean:
-	docker compose -f docker/dev/docker-compose.yml down --volumes --remove-orphans
+	docker compose  -f docker-compose.base.yml -f docker-compose.dev.yml down --volumes --remove-orphans
 
 dev:
-	docker compose -f docker/dev/docker-compose.yml build
-	docker compose -f docker/dev/docker-compose.yml up --remove-orphans
+	docker compose -f docker-compose.base.yml -f docker-compose.dev.yml build
+	docker compose -f docker-compose.base.yml -f docker-compose.dev.yml up --remove-orphans
 
 fmt:
 	black app
@@ -17,5 +17,5 @@ test:
 	pytest
 
 run:
-	docker compose -f docker/prod/docker-compose.yml build
-	docker compose -f docker/prod/docker-compose.yml up --remove-orphans
+	docker compose -f docker-compose.base.yml -f docker-compose.prod.yml build
+	docker compose -f docker-compose.base.yml -f docker-compose.prod.yml up --remove-orphans

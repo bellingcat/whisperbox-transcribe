@@ -18,6 +18,7 @@ web=[
 ]
 
 worker=[
+  "watchdog[watchmedo] ==2.3.1",
   "whisper-openai ==1.0.0",
   "requests ==2.28.2"
 ]
@@ -37,10 +38,6 @@ tooling = [
   "mypy ==1.0.1",
   "sqlalchemy-stubs ==0.4",
   "types-requests ==2.28.11.15"
-]
-
-worker_dev = [
-  "watchdog[watchmedo] ==2.3.1"
 ]
 
 [tool.isort]

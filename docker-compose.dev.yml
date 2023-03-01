@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  traefik:
+    container_name: whisperbox_traefik_dev
+  redis:
+    container_name: whisperbox_redis_dev
+
+  web:
+    container_name: whisperbox_web_dev
+    env_file: .env
+    command: bash -c "alembic upgrade head && uvicorn app.web.main:app --reload --host ${HOST:-0.0.0.0} --port ${PORT:-8000} --log-level info"
+    volumes:
+      - ./:/etc/whisperbox/
+    labels:
+      - "traefik.http.routers.web.entrypoints=web"
+
+  worker:
+    container_name: whisperbox_worker_dev
+    env_file: .env
+    command: watchmedo auto-restart -d app/worker -p *.py --recursive celery -- --app=app.worker.main.celery worker --loglevel=info --concurrency=1 --pool solo
+    volumes:
+      - ./:/etc/whisperbox/
+
+  flower:
+    container_name: whisperbox_flower_dev
+    image: mher/flower
+    command: celery --broker redis://redis:6379/0 flower --port=5555
+    ports:
+      - 5555:5555
+    depends_on:
+      worker:
+        condition: service_healthy
+    networks:
+      - app
+

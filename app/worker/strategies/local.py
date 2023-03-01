@@ -8,6 +8,7 @@ from uuid import UUID
 import requests
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+import torch
 from whisper import load_model
 
 import app.shared.db.schemas as schemas
@@ -26,6 +27,18 @@ class LocalStrategy:
         self.job_id = job_id
         self.url = url
         self.config = config
+
+        if torch.cuda.is_available():
+            self.model = load_model(
+                os.environ["WHISPER_MODEL"],
+                download_root="/models"
+            ).cuda()
+        else:
+            self.model = load_model(
+                os.environ["WHISPER_MODEL"],
+                download_root="/models"
+            )
+
         logger.info(f"[{self.job_id}]: initialized local strategy.")
 
     def transcribe(self) -> List[Any]:
@@ -54,7 +67,6 @@ class LocalStrategy:
     def run_whisper(self, filepath: str, task: str) -> List[Any]:
         try:
             language = self.config.language if self.config else None
-            model = load_model("small", download_root="/models")
 
             result = model.transcribe(
                 filepath,

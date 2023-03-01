@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  redis:
+    container_name: whisperbox_redis
+
+  worker:
+    container_name: whisperbox_worker
+    env_file: .env
+    volumes:
+      - whisperbox-data:/etc/whisperbox/data
+    # <ENABLE GPU SUPPORT>
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  web:
+    container_name: whisperbox_web
+    env_file: .env
+    volumes:
+      - whisperbox-data:/etc/whisperbox/data
