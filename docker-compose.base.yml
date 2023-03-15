@@ -5,13 +5,6 @@ services:
   traefik:
     image: "traefik:latest"
     restart: unless-stopped
-    ports:
-      - "80:80"
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=whisperbox-transcribe_traefik"
-      - "--entrypoints.web.address=:80"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
@@ -21,8 +14,6 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports:
-      - 6379:6379
     networks:
       - app
     deploy:
@@ -35,7 +26,8 @@ services:
       context: .
       dockerfile: worker.Dockerfile
       args:
-        WHISPER_MODEL: tiny
+        # FIXME
+        WHISPER_MODEL: small
     networks:
       - app
     depends_on:
@@ -56,10 +48,7 @@ services:
     depends_on:
       worker:
         condition: service_healthy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.services.web.loadbalancer.server.port=8000"
-      - "traefik.http.routers.web.rule=(Host(`${DOMAIN}`))"
+
 networks:
   app:
     driver: bridge

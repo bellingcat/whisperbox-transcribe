@@ -3,6 +3,13 @@ version: "3.8"
 services:
   traefik:
     container_name: whisperbox-transcribe_traefik_dev
+    ports:
+      - "80:80"
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=whisperbox-transcribe_traefik"
+      - "--entrypoints.web.address=:80"
 
   redis:
     container_name: whisperbox-transcribe_redis_dev
@@ -15,6 +22,9 @@ services:
       - ./:/etc/whisperbox-transcribe/
     labels:
       - "traefik.http.routers.web.entrypoints=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.web.loadbalancer.server.port=8000"
+      - "traefik.http.routers.web.rule=(Host(`${TRAEFIK_DOMAIN}`))"
 
   worker:
     container_name: whisperbox-transcribe_worker_dev

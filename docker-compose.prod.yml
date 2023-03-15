@@ -3,6 +3,25 @@ version: "3.8"
 services:
   traefik:
     container_name: whisperbox-transcribe_traefik
+    ports:
+      - "443:443"
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=whisperbox-transcribe_traefik"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.le.acme.email=${TRAEFIK_SSLEMAIL}"
+      - "--certificatesresolvers.le.acme.storage=./acme.json"
+      - "--certificatesresolvers.le.acme.tlschallenge=true"
+    labels:
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.tls.certresolver=le"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
+      - "traefik.http.routers.http-catchall.entrypoints=web"
+      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
 
   redis:
     container_name: whisperbox-transcribe_redis
@@ -28,9 +47,14 @@ services:
     container_name: whisperbox-transcribe_web
     env_file: .env
     volumes:
-      - whisperbox-transcribe-data:/etc/whisperbox-transcribe/data
+      - whisperbox-transcribe-data:/etc/whisperbox-transcribe/data/
     labels:
-      - "traefik.http.routers.web.entrypoints=web"
+      - "traefik.enable=true"
+      - "traefik.http.services.web.loadbalancer.server.port=8000"
+      - "traefik.http.routers.web.rule=(Host(`${TRAEFIK_DOMAIN}`))"
+      - "traefik.http.routers.web.entrypoints=websecure"
+      - "traefik.http.routers.web.tls=true"
+      - "traefik.http.routers.web.tls.certresolver=le"
 
 volumes:
   whisperbox-transcribe-data:

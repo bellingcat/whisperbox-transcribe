@@ -8,7 +8,10 @@ OpenAPI documentation can be accessed via `<service_url>/docs`.
 
 ## Deploy
 
-// TODO
+ 1. Clone this repository to the host machine.
+ 2. Create an `.env` file from `.env.example`.
+ 3. Run `make run` to start the server.
+ 4. Wrap in a systemd service to launch at startup.
 
 ## Develop
 
