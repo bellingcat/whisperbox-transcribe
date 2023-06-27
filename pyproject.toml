@@ -36,7 +36,7 @@ tooling = [
   "pytest ==7.4.0",
   # types
   "mypy ==1.0.1",
-  "types-requests ==2.28.11.15"
+  "types-requests ==2.31.0.1"
 ]
 
 [tool.isort]
