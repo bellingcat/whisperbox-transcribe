@@ -22,6 +22,7 @@ services:
           memory: 128M
 
   worker:
+    env_file: .env
     build:
       context: .
       dockerfile: worker.Dockerfile
@@ -39,6 +40,7 @@ services:
       retries: 5
 
   web:
+    env_file: .env
     build:
       context: .
       dockerfile: web.Dockerfile

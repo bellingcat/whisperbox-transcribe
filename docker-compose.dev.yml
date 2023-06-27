@@ -1,22 +1,17 @@
 version: "3.8"
+name: whisperbox-transcribe-dev
 
 services:
   traefik:
-    container_name: whisperbox-transcribe_traefik_dev
     ports:
       - "80:80"
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=whisperbox-transcribe_traefik"
+      - "--providers.docker.network=whisperbox-transcribe-dev_traefik"
       - "--entrypoints.web.address=:80"
 
-  redis:
-    container_name: whisperbox-transcribe_redis_dev
-
   web:
-    container_name: whisperbox-transcribe_web_dev
-    env_file: .env
     command: bash -c "alembic upgrade head && uvicorn app.web.main:app --reload --host ${HOST:-0.0.0.0} --port ${PORT:-8000} --log-level info"
     volumes:
       - ./:/etc/whisperbox-transcribe/
@@ -27,14 +22,11 @@ services:
       - "traefik.http.routers.web.rule=(Host(`${TRAEFIK_DOMAIN}`))"
 
   worker:
-    container_name: whisperbox-transcribe_worker_dev
-    env_file: .env
     command: watchmedo auto-restart -d app/worker -p *.py --recursive celery -- --app=app.worker.main.celery worker --loglevel=info --concurrency=1 --pool solo
     volumes:
       - ./:/etc/whisperbox-transcribe/
 
   flower:
-    container_name: whisperbox-transcribe_flower_dev
     image: mher/flower
     command: celery --broker redis://redis:6379/0 flower --port=5555
     ports:
@@ -44,4 +36,3 @@ services:
         condition: service_healthy
     networks:
       - app
-

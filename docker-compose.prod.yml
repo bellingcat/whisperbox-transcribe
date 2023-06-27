@@ -1,8 +1,8 @@
 version: "3.8"
+name: whisperbox-transcribe
 
 services:
   traefik:
-    container_name: whisperbox-transcribe_traefik
     ports:
       - "80:80"
       - "443:443"
@@ -22,12 +22,7 @@ services:
       - ./data/letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
-  redis:
-    container_name: whisperbox-transcribe_redis
-
   worker:
-    container_name: whisperbox-transcribe_worker
-    env_file: .env
     # <GPU SUPPORT>
     # build:
     #   dockerfile: worker.gpu.Dockerfile
@@ -43,8 +38,6 @@ services:
     #           capabilities: [gpu]
 
   web:
-    container_name: whisperbox-transcribe_web
-    env_file: .env
     volumes:
       - whisperbox-transcribe-data:/etc/whisperbox-transcribe/data/
     labels:

@@ -1,4 +1,4 @@
-# TODO: clean up lol
+# TODO: clean up
 FROM nvidia/cuda:11.8.0-base-ubuntu22.04 AS python-deploy
 
 ENV PYTHON_VERSION=3.10
