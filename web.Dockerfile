@@ -20,4 +20,4 @@ COPY alembic.ini .
 ENV VIRTUAL_ENV /opt/venv
 ENV PATH /opt/venv/bin:$PATH
 
-CMD alembic upgrade head && uvicorn app.web.main:app --host ${HOST:-0.0.0.0} --port ${PORT:-8000} --log-level info --workers 4 --proxy-head>
+CMD alembic upgrade head && uvicorn app.web.main:app --host ${HOST:-0.0.0.0} --port ${PORT:-8000} --log-level info --workers 4 --proxy-headers

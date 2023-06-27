@@ -5,24 +5,22 @@ services:
     container_name: whisperbox-transcribe_traefik
     ports:
       - "80:80"
-
+      - "443:443"
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=whisperbox-transcribe_traefik"
       - "--entrypoints.web.address=:80"
-      # - "--certificatesresolvers.le.acme.email=${TRAEFIK_SSLEMAIL}"
-      # - "--certificatesresolvers.le.acme.storage=./acme.json"
-      # - "--certificatesresolvers.le.acme.tlschallenge=true"
-    labels:
-      # - "traefik.http.routers.traefik.tls=true"
-      # - "traefik.http.routers.traefik.tls.certresolver=le"
-      - "traefik.http.routers.traefik.entrypoints=web"
-      # - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
-      # - "traefik.http.routers.http-catchall.entrypoints=web"
-      # - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
-      # - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--certificatesresolvers.le.acme.email=${TRAEFIK_SSLEMAIL}"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.le.acme.tlschallenge=true"
+    volumes:
+      - ./data/letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
   redis:
     container_name: whisperbox-transcribe_redis
@@ -54,8 +52,8 @@ services:
       - "traefik.http.services.web.loadbalancer.server.port=8000"
       - "traefik.http.routers.web.rule=(Host(`${TRAEFIK_DOMAIN}`))"
       - "traefik.http.routers.web.entrypoints=web"
-      # - "traefik.http.routers.web.tls=true"
-      # - "traefik.http.routers.web.tls.certresolver=le"
+      - "traefik.http.routers.web.tls=true"
+      - "traefik.http.routers.web.tls.certresolver=le"
 
 volumes:
   whisperbox-transcribe-data:
