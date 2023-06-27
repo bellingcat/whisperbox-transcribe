@@ -20,7 +20,7 @@ web=[
 worker=[
   "watchdog[watchmedo] ==2.3.1",
   "whisper-openai ==1.0.0",
-  "requests ==2.28.2"
+  "requests ==2.31.0"
 ]
 
 tooling = [
