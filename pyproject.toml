@@ -38,5 +38,9 @@ tooling = [
   "types-requests ==2.31.0.1"
 ]
 
+[tool.ruff]
+# pyflakes, pycodestyle, isort
+select = ["F", "E", "W", "I001"]
+
 [tool.setuptools]
 py-modules = []
