@@ -1,4 +1,4 @@
-FROM python:3.10-slim as python-build
+FROM python:3.11-slim as python-build
 
 WORKDIR /etc/whisperbox-transcribe
 
@@ -8,7 +8,7 @@ RUN python -m venv /opt/venv && \
     /opt/venv/bin/pip install -U pip wheel && \
     /opt/venv/bin/pip install -U .[web]
 
-FROM python:3.10-slim as python-deploy
+FROM python:3.11-slim as python-deploy
 
 WORKDIR /etc/whisperbox-transcribe
 

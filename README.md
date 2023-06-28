@@ -33,6 +33,7 @@ This project is intended to be run via [docker compose](https://docs.docker.com/
 ### 2. Configure service
 
 2. Create an `.env` file from `.env.example` and configure it:
+
  - `API_SECRET`: the API key used to authenticate against the API.
  - `WHISPER_MODEL`: the whisper model size you want to use.
  - `TRAEFIK_DOMAIN`: the domain you want to access the service from. Its A records need to point to the host IP.

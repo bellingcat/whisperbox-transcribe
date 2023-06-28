@@ -1,4 +1,4 @@
-FROM python:3.10-slim AS python-build
+FROM python:3.11-slim AS python-build
 
 WORKDIR /etc/whisperbox-transcribe
 
@@ -9,7 +9,7 @@ RUN python -m venv /opt/venv && \
     /opt/venv/bin/pip install -U pip wheel && \
     /opt/venv/bin/pip install -U .[worker]
 
-FROM python:3.10-slim as python-deploy
+FROM python:3.11-slim as python-deploy
 
 ARG WHISPER_MODEL
 
