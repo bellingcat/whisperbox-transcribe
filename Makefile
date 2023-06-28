@@ -7,10 +7,11 @@ dev:
 
 fmt:
 	black app
-	isort app
+	ruff check app --fix
 
 lint:
-	flake8 app
+	black --check app
+	ruff check app
 	mypy app
 
 test:

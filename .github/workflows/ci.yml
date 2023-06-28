@@ -13,10 +13,8 @@ jobs:
           cache: 'pip'
           cache-dependency-path: '**/pyproject.toml'
       - run: pip install -e .[web,tooling]
-      - run: black --check app
-      - run: isort --check app
-      - run: flake8 app
-      - run: mypy app
+      - run: make lint
+
   test:
     runs-on: ubuntu-latest
     name: Test
