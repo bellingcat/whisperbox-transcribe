@@ -1,5 +1,5 @@
 from asyncio.log import logger
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
 from celery import Task
@@ -21,7 +21,7 @@ class TranscribeTask(Task):
     def __init__(self) -> None:
         super().__init__()
         # currently only `LocalStrategy` is implemented.
-        self.strategy: Optional[LocalStrategy] = None
+        self.strategy: LocalStrategy | None = None
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         # load model into memory once when the first task is processed.
@@ -94,7 +94,7 @@ def transcribe(self: Task, job_id: UUID) -> None:
             job.meta = {**job.meta, "error": str(e)}  # type: ignore
             job.status = schemas.JobStatus.error
             db.commit()
-        raise (e)
+        raise
     finally:
         self.strategy.cleanup(job_id=job_id)
         db.close()

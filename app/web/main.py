@@ -1,5 +1,4 @@
 from asyncio.log import logger
-from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Path
@@ -85,11 +84,11 @@ def create_job(
 
 
 @api_router.get(
-    "/jobs", response_model=List[schemas.Job], summary="Get metadata for all jobs"
+    "/jobs", response_model=list[schemas.Job], summary="Get metadata for all jobs"
 )
 def get_transcripts(
-    type: Optional[schemas.JobType] = None, session: Session = Depends(get_session)
-) -> List[models.Job]:
+    type: schemas.JobType | None = None, session: Session = Depends(get_session)
+) -> list[models.Job]:
     """Get metadata for all jobs."""
     query = session.query(models.Job)
 
@@ -107,7 +106,7 @@ def get_transcripts(
 )
 def get_transcript(
     id: UUID = Path(), session: Session = Depends(get_session)
-) -> Optional[models.Job]:
+) -> models.Job | None:
     """
     Use this route to check transcription status of any given job.
     """
@@ -119,12 +118,12 @@ def get_transcript(
 
 @api_router.get(
     "/jobs/{id}/artifacts",
-    response_model=List[schemas.Artifact],
+    response_model=list[schemas.Artifact],
     summary="Get all artifacts for one job",
 )
 def get_artifacts_for_job(
     id: UUID = Path(), session: Session = Depends(get_session)
-) -> List[models.Artifact]:
+) -> list[models.Artifact]:
     """
     Right now, there is only one type of artifact (`raw_transcript`).
     Returns an empty array for unfinished or non-existant jobs.

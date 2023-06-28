@@ -2,7 +2,7 @@ import os
 import tempfile
 from asyncio.log import logger
 from os import path
-from typing import Any, List, Literal, Optional
+from typing import Any, Literal
 from uuid import UUID
 
 import requests
@@ -14,7 +14,7 @@ import app.shared.db.schemas as schemas
 
 
 class DecodeOptions(BaseModel):
-    language: Optional[str]
+    language: str | None
     task: Literal["translate", "transcribe"]
 
 
@@ -34,15 +34,15 @@ class LocalStrategy:
         logger.info("initialized local strategy.")
 
     def transcribe(
-        self, url: str, job_id: UUID, config: Optional[schemas.JobConfig]
-    ) -> List[Any]:
+        self, url: str, job_id: UUID, config: schemas.JobConfig | None
+    ) -> list[Any]:
         return self.run_whisper(
             self._download(url, job_id), "transcribe", config, job_id
         )
 
     def translate(
-        self, url: str, job_id: UUID, config: Optional[schemas.JobConfig]
-    ) -> List[Any]:
+        self, url: str, job_id: UUID, config: schemas.JobConfig | None
+    ) -> list[Any]:
         return self.run_whisper(
             self._download(url, job_id),
             "translate",
@@ -50,9 +50,7 @@ class LocalStrategy:
             job_id,
         )
 
-    def detect_language(
-        self, url: str, config: Optional[schemas.JobConfig]
-    ) -> List[Any]:
+    def detect_language(self, url: str, config: schemas.JobConfig | None) -> list[Any]:
         raise NotImplementedError("detect_language has not been implemented yet.")
 
     def _download(self, url: str, job_id: UUID) -> str:
@@ -73,9 +71,9 @@ class LocalStrategy:
         self,
         filepath: str,
         task: Literal["translate", "transcribe"],
-        config: Optional[schemas.JobConfig],
+        config: schemas.JobConfig | None,
         job_id: UUID,
-    ) -> List[Any]:
+    ) -> list[Any]:
         try:
             language = config.language if config else None
 

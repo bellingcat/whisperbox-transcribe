@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from pydantic import AnyHttpUrl, BaseModel, Field
 
@@ -9,7 +9,7 @@ class DetailResponse(BaseModel):
     detail: str
 
 
-DEFAULT_RESPONSES: Dict[Union[int, str], Dict[str, Any]] = {
+DEFAULT_RESPONSES: dict[int | str, dict[str, Any]] = {
     401: {"model": DetailResponse, "description": "Not authenticated"}
 }
 
@@ -28,8 +28,7 @@ class PostJobPayload(BaseModel):
         `language_detection` detects language from the first 30 seconds of audio."""
     )
 
-    # TODO: limit to locales selected by whisper.
-    language: Optional[str] = Field(
+    language: str | None = Field(
         description=(
             "Spoken language in the media file. "
             "While optional, this can improve output when set."

@@ -1,5 +1,3 @@
-from typing import Dict
-
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
@@ -26,7 +24,7 @@ def mock_job(db_session: Session) -> models.Job:
 
 # POST /api/v1/jobs
 # ---
-def test_create_job_pass(auth_headers: Dict[str, str]) -> None:
+def test_create_job_pass(auth_headers: dict[str, str]) -> None:
     res = client.post(
         "/api/v1/jobs",
         headers=auth_headers,
@@ -36,12 +34,12 @@ def test_create_job_pass(auth_headers: Dict[str, str]) -> None:
     assert isinstance(res.json()["id"], str)
 
 
-def test_create_job_missing_body(auth_headers: Dict[str, str]) -> None:
+def test_create_job_missing_body(auth_headers: dict[str, str]) -> None:
     res = client.post("/api/v1/jobs", headers=auth_headers, json={})
     assert res.status_code == 422
 
 
-def test_create_job_malformed_url(auth_headers: Dict[str, str]) -> None:
+def test_create_job_malformed_url(auth_headers: dict[str, str]) -> None:
     res = client.post(
         "/api/v1/jobs",
         headers=auth_headers,
@@ -52,7 +50,7 @@ def test_create_job_malformed_url(auth_headers: Dict[str, str]) -> None:
 
 # GET /api/v1/jobs
 # ---
-def test_get_jobs_pass(auth_headers: Dict[str, str], mock_job: models.Job) -> None:
+def test_get_jobs_pass(auth_headers: dict[str, str], mock_job: models.Job) -> None:
     res = client.get(
         "/api/v1/jobs?type=transcript",
         headers=auth_headers,
@@ -63,7 +61,7 @@ def test_get_jobs_pass(auth_headers: Dict[str, str], mock_job: models.Job) -> No
 
 # GET /api/v1/jobs/:id
 # ---
-def test_get_job_pass(auth_headers: Dict[str, str], mock_job: models.Job) -> None:
+def test_get_job_pass(auth_headers: dict[str, str], mock_job: models.Job) -> None:
     res = client.get(
         f"/api/v1/jobs/{mock_job.id}",
         headers=auth_headers,
@@ -72,7 +70,7 @@ def test_get_job_pass(auth_headers: Dict[str, str], mock_job: models.Job) -> Non
     assert res.json()["id"] == str(mock_job.id)
 
 
-def test_get_job_not_found(auth_headers: Dict[str, str], mock_job: models.Job) -> None:
+def test_get_job_not_found(auth_headers: dict[str, str], mock_job: models.Job) -> None:
     res = client.get(
         "/api/v1/jobs/c8ecf5ea-77cf-48a2-9ecd-199ef35e0ccb",
         headers=auth_headers,
@@ -84,7 +82,7 @@ def test_get_job_not_found(auth_headers: Dict[str, str], mock_job: models.Job) -
 # GET /api/v1/jobs/:id/artifacts
 # ---
 def test_get_artifacts_pass(
-    auth_headers: Dict[str, str], db_session: Session, mock_job: models.Job
+    auth_headers: dict[str, str], db_session: Session, mock_job: models.Job
 ) -> None:
     artifact = models.Artifact(
         data=[], job_id=str(mock_job.id), type=schemas.ArtifactType.raw_transcript
@@ -104,7 +102,7 @@ def test_get_artifacts_pass(
 
 
 def test_get_artifacts_not_found(
-    auth_headers: Dict[str, str], mock_job: models.Job
+    auth_headers: dict[str, str], mock_job: models.Job
 ) -> None:
     res = client.get(
         f"/api/v1/jobs/{mock_job.id}/artifacts",
@@ -118,7 +116,7 @@ def test_get_artifacts_not_found(
 # DELETE /api/v1/jobs
 # ---
 def test_delete_job_pass(
-    auth_headers: Dict[str, str], mock_job: models.Job, db_session: Session
+    auth_headers: dict[str, str], mock_job: models.Job, db_session: Session
 ) -> None:
     res = client.delete(
         f"/api/v1/jobs/{mock_job.id}",

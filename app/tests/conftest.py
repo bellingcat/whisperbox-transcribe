@@ -1,4 +1,4 @@
-from typing import Dict, Generator
+from typing import Generator
 
 import pytest
 from sqlalchemy.orm import Session
@@ -22,7 +22,7 @@ def pytest_unconfigure() -> None:
 
 
 @pytest.fixture(name="auth_headers", scope="function")
-def auth_header() -> Dict[str, str]:
+def auth_header() -> dict[str, str]:
     return {"Authorization": f"Bearer {settings.API_SECRET}"}
 
 

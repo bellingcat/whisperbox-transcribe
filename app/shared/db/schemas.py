@@ -1,6 +1,5 @@
 import enum
 from datetime import datetime
-from typing import List, Optional
 from uuid import UUID
 
 from pydantic import AnyHttpUrl, BaseModel, Field
@@ -9,7 +8,7 @@ from pydantic import AnyHttpUrl, BaseModel, Field
 class WithDbFields(BaseModel):
     id: UUID
     created_at: datetime
-    updated_at: Optional[datetime]
+    updated_at: datetime | None
 
     class Config:
         orm_mode = True
@@ -38,7 +37,7 @@ class JobConfig(BaseModel):
     """Configuration for a job."""
 
     # TODO: limit to locales selected by whisper.
-    language: Optional[str] = Field(
+    language: str | None = Field(
         description=(
             "Spoken language in the media file. "
             "While optional, this can improve output."
@@ -49,10 +48,10 @@ class JobConfig(BaseModel):
 class JobMeta(BaseModel):
     """Metadata relating to a job's execution."""
 
-    error: Optional[str] = Field(
+    error: str | None = Field(
         description="Will contain a descriptive error message if processing failed."
     )
-    task_id: Optional[UUID] = Field(
+    task_id: UUID | None = Field(
         description="Internal celery id of this job submission."
     )
 
@@ -63,8 +62,8 @@ class Job(WithDbFields):
     status: JobStatus
     type: JobType
     url: AnyHttpUrl
-    meta: Optional[JobMeta]
-    config: Optional[JobConfig]
+    meta: JobMeta | None
+    config: JobConfig | None
 
 
 class RawTranscript(BaseModel):
@@ -75,7 +74,7 @@ class RawTranscript(BaseModel):
     start: float
     end: float
     text: str
-    tokens: List[int]
+    tokens: list[int]
     temperature: float
     avg_logprob: float
     compression_ratio: float
@@ -85,6 +84,6 @@ class RawTranscript(BaseModel):
 class Artifact(WithDbFields):
     """whisper output for one job."""
 
-    data: Optional[List[RawTranscript]]
+    data: list[RawTranscript] | None
     job_id: UUID
     type: ArtifactType

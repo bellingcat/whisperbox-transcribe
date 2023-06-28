@@ -1,5 +1,4 @@
 import uuid
-from typing import Optional
 
 from sqlalchemy import JSON, VARCHAR, Column, DateTime, Enum, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
@@ -19,7 +18,7 @@ class WithStandardFields:
         return Column(DateTime, server_default=func.now(), nullable=False)
 
     @declared_attr
-    def updated_at(cls) -> Mapped[Optional[DateTime]]:
+    def updated_at(cls) -> Mapped[DateTime | None]:
         return Column(DateTime, onupdate=func.now())
 
     @declared_attr
