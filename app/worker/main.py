@@ -30,6 +30,15 @@ class TranscribeTask(Task):
         return self.run(*args, **kwargs)
 
 
+def select_strategy(task: Task, job: schemas.Job) -> Any:
+    if job.type == schemas.JobType.transcript:
+        return task.strategy.transcribe
+    elif job.type == schemas.JobType.translation:
+        return task.strategy.translate
+    else:
+        return task.strategy.detect_language
+
+
 @celery.task(
     base=TranscribeTask,
     bind=True,
@@ -52,27 +61,19 @@ def transcribe(self: Task, job_id: UUID) -> None:
             )
             return
 
+        logger.info(f"[{job.id}]: worker received task.")
+
         job.meta = {"task_id": self.request.id}
         job.status = schemas.JobStatus.processing
         db.commit()
-
         logger.info(f"[{job.id}]: set task to status processing.")
 
         job_record = schemas.Job.from_orm(job)
 
-        # process selected task.
-        if job.type == schemas.JobType.transcript:
-            result = self.strategy.transcribe(
-                url=job_record.url, job_id=job_record.id, config=job_record.config
-            )
-        elif job.type == schemas.JobType.translation:
-            result = self.strategy.translate(
-                url=job_record.url, job_id=job_record.id, config=job_record.config
-            )
-        else:
-            result = self.strategy.detect_language(
-                url=job_record.url, job_id=job_record.id, config=job_record.config
-            )
+        strategy = select_strategy(self, job_record)
+        result = strategy(
+            url=job_record.url, job_id=job_record.id, config=job_record.config
+        )
 
         logger.info(f"[{job.id}]: successfully processed audio.")
 
@@ -93,6 +94,7 @@ def transcribe(self: Task, job_id: UUID) -> None:
             job.meta = {**job.meta, "error": str(e)}  # type: ignore
             job.status = schemas.JobStatus.error
             db.commit()
-            raise (e)
+        raise (e)
     finally:
+        self.strategy.cleanup(job_id=job_id)
         db.close()

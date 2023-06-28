@@ -58,7 +58,7 @@ class LocalStrategy:
     def _download(self, url: str, job_id: UUID) -> str:
         # re-create folder.
         filename = self._get_tmp_file(job_id)
-        self._cleanup(job_id)
+        self.cleanup(job_id)
 
         # stream media to disk.
         with requests.get(url, stream=True) as r:
@@ -87,13 +87,13 @@ class LocalStrategy:
 
             return result["segments"]
         finally:
-            self._cleanup(job_id)
+            self.cleanup(job_id)
 
     def _get_tmp_file(self, job_id: UUID) -> str:
         tmp = tempfile.gettempdir()
         return path.join(tmp, str(job_id))
 
-    def _cleanup(self, job_id: UUID) -> None:
+    def cleanup(self, job_id: UUID) -> None:
         try:
             os.remove(self._get_tmp_file(job_id))
         except OSError:
