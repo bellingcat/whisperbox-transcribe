@@ -103,7 +103,7 @@ def get_transcripts(
     "/jobs/{id}",
     response_model=schemas.Job,
     responses={404: {"model": DetailResponse, "description": "Not found"}},
-    summary="Get metadata for one jobs",
+    summary="Get metadata for one job",
 )
 def get_transcript(
     id: UUID = Path(), session: Session = Depends(get_session)

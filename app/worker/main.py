@@ -9,6 +9,7 @@ import app.shared.db.models as models
 import app.shared.db.schemas as schemas
 from app.shared.celery import get_celery_binding
 from app.shared.db.base import SessionLocal
+from app.shared.settings import settings
 from app.worker.strategies.local import LocalStrategy
 
 celery = get_celery_binding()
@@ -20,7 +21,6 @@ class TranscribeTask(Task):
     def __init__(self) -> None:
         super().__init__()
         # currently only `LocalStrategy` is implemented.
-        # TODO: implement remote processing strategy.
         self.strategy: Optional[LocalStrategy] = None
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
@@ -30,7 +30,12 @@ class TranscribeTask(Task):
         return self.run(*args, **kwargs)
 
 
-@celery.task(base=TranscribeTask, bind=True, soft_time_limit=2 * 60 * 60)
+@celery.task(
+    base=TranscribeTask,
+    bind=True,
+    soft_time_limit=settings.TASK_SOFT_TIME_LIMIT,
+    time_limit=settings.TASK_HARD_TIME_LIMIT,
+)
 def transcribe(self: Task, job_id: UUID) -> None:
     try:
         # runs in a separate thread => requires sqlite's WAL mode to be enabled.
