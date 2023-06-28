@@ -27,14 +27,13 @@ services:
       context: .
       dockerfile: worker.Dockerfile
       args:
-        # FIXME
-        WHISPER_MODEL: small
+        WHISPER_MODEL: ${WHISPER_MODEL}
     networks:
       - app
     depends_on:
       - redis
     healthcheck:
-      test: ["CMD-SHELL", "celery -b redis://redis:6379/0 inspect ping -d celery@$$HOSTNAME"]
+      test: ["CMD-SHELL", "celery -b ${BROKER_URL} inspect ping -d celery@$$HOSTNAME"]
       interval: 5s
       timeout: 5s
       retries: 5
