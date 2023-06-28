@@ -6,7 +6,7 @@
 
 This project wraps OpenAI's `whisper` speech-to-text models with a HTTP API.
 
-The API design of this service draws inspiration from the [rev.ai async speech-to-text API](https://docs.rev.ai/api/asynchronous/get-started/). Transcription jobs are submitted by making a HTTP POST request to the service. Once the job is accepted, an ID is returned, which can be later utilized to retrieve the transcription results. These results are stored in an internal database until they are retrieved and can optionally be deleted afterwards.
+The API design draws inspiration from the [rev.ai async speech-to-text API](https://docs.rev.ai/api/asynchronous/get-started/). Transcription jobs are submitted by making a HTTP POST request to the service. Once the job is accepted, an ID is returned, which can be later utilized to retrieve the transcription results. These results are stored in an internal database until they are retrieved and can optionally be deleted afterwards.
 
 It is assumed that the service is used by exactly one consumer, so a pre-shared API key is used as authentication method. OpenAPI documentation for the service is available at `<service_url>/docs`.
 
@@ -25,10 +25,10 @@ As a starting point, the "small" model can run on a 4GB Digital Ocean droplet wi
 
 ### 1. Prepare host environment
 
-This project is intended to be run via [docker compose](https://docs.docker.com/compose/). In order to get started, [install](https://docs.docker.com/engine/install/) docker engine on your VPS. Then, clone this repository to the machine.
+This project is intended to be run via [docker compose](https://docs.docker.com/compose/). In order to get started, [install](https://docs.docker.com/engine/install/) docker engine. Then, clone this repository to the machine.
 
  > **Note**  
- > If you want to use a GPU, uncomment the sections tagged with _<GPU SUPPORT>_ in docker-compose.prod.yml
+ > If you want to use a GPU, uncomment the sections tagged `<GPU SUPPORT>` in `docker-compose.prod.yml`.
 
 ### 2. Configure service
 
