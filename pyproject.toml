@@ -12,13 +12,13 @@ dependencies=[
 [project.optional-dependencies]
 web=[
   "alembic ==1.11.1",
-  "fastapi ==0.92.0",
-  "uvicorn[standard] ==0.20.0",
+  "fastapi ==0.98.0",
+  "uvicorn[standard] ==0.22.0",
   "gunicorn ==20.1.0"
 ]
 
 worker=[
-  "watchdog[watchmedo] ==2.3.1",
+  "watchdog[watchmedo] ==3.0.0",
   "whisper-openai ==1.0.0",
   "requests ==2.31.0"
 ]

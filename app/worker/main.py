@@ -9,6 +9,7 @@ import app.shared.db.models as models
 import app.shared.db.schemas as schemas
 from app.shared.celery import get_celery_binding
 from app.shared.db.base import SessionLocal
+from app.shared.settings import settings
 from app.worker.strategies.local import LocalStrategy
 
 celery = get_celery_binding()
@@ -20,7 +21,6 @@ class TranscribeTask(Task):
     def __init__(self) -> None:
         super().__init__()
         # currently only `LocalStrategy` is implemented.
-        # TODO: implement remote processing strategy.
         self.strategy: Optional[LocalStrategy] = None
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
@@ -30,7 +30,21 @@ class TranscribeTask(Task):
         return self.run(*args, **kwargs)
 
 
-@celery.task(base=TranscribeTask, bind=True, soft_time_limit=2 * 60 * 60)
+def select_strategy(task: Task, job: schemas.Job) -> Any:
+    if job.type == schemas.JobType.transcript:
+        return task.strategy.transcribe
+    elif job.type == schemas.JobType.translation:
+        return task.strategy.translate
+    else:
+        return task.strategy.detect_language
+
+
+@celery.task(
+    base=TranscribeTask,
+    bind=True,
+    soft_time_limit=settings.TASK_SOFT_TIME_LIMIT,
+    time_limit=settings.TASK_HARD_TIME_LIMIT,
+)
 def transcribe(self: Task, job_id: UUID) -> None:
     try:
         # runs in a separate thread => requires sqlite's WAL mode to be enabled.
@@ -47,27 +61,19 @@ def transcribe(self: Task, job_id: UUID) -> None:
             )
             return
 
+        logger.info(f"[{job.id}]: worker received task.")
+
         job.meta = {"task_id": self.request.id}
         job.status = schemas.JobStatus.processing
         db.commit()
-
         logger.info(f"[{job.id}]: set task to status processing.")
 
         job_record = schemas.Job.from_orm(job)
 
-        # process selected task.
-        if job.type == schemas.JobType.transcript:
-            result = self.strategy.transcribe(
-                url=job_record.url, job_id=job_record.id, config=job_record.config
-            )
-        elif job.type == schemas.JobType.translation:
-            result = self.strategy.translate(
-                url=job_record.url, job_id=job_record.id, config=job_record.config
-            )
-        else:
-            result = self.strategy.detect_language(
-                url=job_record.url, job_id=job_record.id, config=job_record.config
-            )
+        strategy = select_strategy(self, job_record)
+        result = strategy(
+            url=job_record.url, job_id=job_record.id, config=job_record.config
+        )
 
         logger.info(f"[{job.id}]: successfully processed audio.")
 
@@ -88,6 +94,7 @@ def transcribe(self: Task, job_id: UUID) -> None:
             job.meta = {**job.meta, "error": str(e)}  # type: ignore
             job.status = schemas.JobStatus.error
             db.commit()
-            raise (e)
+        raise (e)
     finally:
+        self.strategy.cleanup(job_id=job_id)
         db.close()
