@@ -72,7 +72,7 @@ class LocalStrategy:
     def run_whisper(
         self,
         filepath: str,
-        task: str,
+        task: Literal["translate", "transcribe"],
         config: Optional[schemas.JobConfig],
         job_id: UUID,
     ) -> List[Any]:
