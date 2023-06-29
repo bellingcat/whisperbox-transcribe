@@ -20,6 +20,7 @@ class TaskQueue:
         allow for full separation of worker processes and dependencies.
         """
         transcribe = self.celery.signature("app.worker.main.transcribe")
+        # TODO: catch delivery errors?
         transcribe.delay(job.id)
 
     def rehydrate(self, session: Session):

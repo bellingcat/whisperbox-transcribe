@@ -9,13 +9,17 @@ import app.shared.db.models as models
 from app.shared.celery import get_celery_binding
 from app.shared.db.base import SessionLocal
 from app.shared.settings import settings
-from app.worker.strategies.base import TaskProtocol
 from app.worker.strategies.local import LocalStrategy
 
 celery = get_celery_binding()
 
 
 class TranscribeTask(Task):
+    """
+    Decorate the transcribe task with an instance of the transcription strategy.
+    This is important for the local strategy, where loading the model is expensive.
+    """
+
     abstract = True
 
     def __init__(self) -> None:
@@ -28,15 +32,6 @@ class TranscribeTask(Task):
         if not self.strategy:
             self.strategy = LocalStrategy()
         return self.run(*args, **kwargs)
-
-
-def select_task_processor(task: Task, job: models.Job) -> TaskProtocol:
-    if job.type == models.JobType.transcript:
-        return task.strategy.transcribe
-    elif job.type == models.JobType.translation:
-        return task.strategy.translate
-    else:
-        return task.strategy.detect_language
 
 
 @celery.task(
@@ -73,29 +68,25 @@ def transcribe(self: Task, job_id: UUID) -> None:
         logger.debug(f"[{job.id}]: finished setting task to {job.status}.")
 
         # unit of work: process job with whisper.
-
-        processor = select_task_processor(self, job)
-
-        result_type, result = processor(job)
-
+        result_type, result = self.strategy.process(job)
         logger.debug(f"[{job.id}]: successfully processed audio.")
 
         artifact = models.Artifact(job_id=str(job.id), data=result, type=result_type)
-
         db.add(artifact)
 
         job.status = models.JobStatus.success
-
         db.commit()
+
         logger.debug(f"[{job.id}]: successfully stored artifact.")
 
     except Exception as e:
         if job and db:
-            db.rollback()
+            if db.in_transaction():
+                db.rollback()
             job.meta = {**job.meta, "error": str(e)}  # type: ignore
             job.status = models.JobStatus.error
             db.commit()
         raise
     finally:
-        self.strategy.cleanup(job_id=job_id)
+        self.strategy.cleanup(job_id)
         db.close()
