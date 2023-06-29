@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 import app.shared.db.models as models
 import app.web.dtos as dtos
 from app.shared.db.base import SessionLocal, get_session
+from app.shared.settings import settings
 from app.web.security import authenticate_api_key
 from app.web.task_queue import task_queue
 
@@ -29,10 +30,7 @@ app = FastAPI(
 )
 
 
-api_router = APIRouter(
-    prefix="/api/v1",
-    dependencies=[Depends(authenticate_api_key)],
-)
+api_router = APIRouter(prefix="/api/v1")
 
 
 @api_router.get("/", response_model=None, status_code=204)
@@ -41,7 +39,10 @@ def api_root() -> None:
 
 
 @api_router.get(
-    "/jobs", response_model=list[dtos.Job], summary="Get metadata for all jobs"
+    "/jobs",
+    dependencies=[Depends(authenticate_api_key)],
+    response_model=list[dtos.Job],
+    summary="Get metadata for all jobs",
 )
 def get_transcripts(
     session: DatabaseSession,
@@ -58,6 +59,7 @@ def get_transcripts(
 
 @api_router.get(
     "/jobs/{id}",
+    dependencies=[] if settings.ENABLE_SHARING else [Depends(authenticate_api_key)],
     response_model=dtos.Job,
     summary="Get metadata for one job",
 )
@@ -78,6 +80,7 @@ def get_transcript(
 
 @api_router.get(
     "/jobs/{id}/artifacts",
+    dependencies=[] if settings.ENABLE_SHARING else [Depends(authenticate_api_key)],
     response_model=list[dtos.Artifact],
     summary="Get all artifacts for one job",
 )
@@ -98,7 +101,10 @@ def get_artifacts_for_job(
 
 
 @api_router.delete(
-    "/jobs/{id}", status_code=204, summary="Delete a job with all artifacts"
+    "/jobs/{id}",
+    dependencies=[Depends(authenticate_api_key)],
+    status_code=204,
+    summary="Delete a job with all artifacts",
 )
 def delete_transcript(
     session: DatabaseSession,
@@ -133,6 +139,7 @@ class PostJobPayload(BaseModel):
 
 @api_router.post(
     "/jobs",
+    dependencies=[Depends(authenticate_api_key)],
     response_model=dtos.Job,
     status_code=201,
     summary="Enqueue a new job",
