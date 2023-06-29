@@ -43,6 +43,3 @@ class TaskQueue:
 
         for job in jobs:
             self.queue_task(job)
-
-
-task_queue = TaskQueue()

@@ -12,7 +12,7 @@ services:
       - "--entrypoints.web.address=:80"
 
   web:
-    command: bash -c "alembic upgrade head && uvicorn app.web.main:app --reload --host ${HOST:-0.0.0.0} --port ${PORT:-8000} --log-level info"
+    command: bash -c "alembic upgrade head && uvicorn app.web:app --reload --host ${HOST:-0.0.0.0} --port ${PORT:-8000} --log-level info"
     volumes:
       - ./:/etc/whisperbox-transcribe/
     labels:

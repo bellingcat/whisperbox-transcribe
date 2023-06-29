@@ -166,3 +166,6 @@ cython_debug/
 whisperbox-transcribe.sqlite*
 *shm
 *wal
+
+# ruff
+.ruff_cache
