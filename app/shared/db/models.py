@@ -1,12 +1,38 @@
+import enum
 import uuid
 
 from sqlalchemy import JSON, VARCHAR, Column, DateTime, Enum, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, declarative_base, declarative_mixin, declared_attr
 
-from .schemas import ArtifactType, JobStatus, JobType
-
 Base = declarative_base()
+
+# Enums
+
+
+class JobType(str, enum.Enum):
+    """Requested type of a job."""
+
+    transcript = "transcribe"
+    translation = "translate"
+    language_detection = "detect_language"
+
+
+class JobStatus(str, enum.Enum):
+    """Processing status of a job."""
+
+    create = "create"
+    processing = "processing"
+    error = "error"
+    success = "success"
+
+
+class ArtifactType(str, enum.Enum):
+    raw_transcript = "transcript_raw"
+    language_detection = "language_detection"
+
+
+# SQLAlchemy models
 
 
 @declarative_mixin

@@ -3,8 +3,6 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 import app.shared.db.models as models
-import app.shared.db.schemas as schemas
-from app.shared.db.schemas import JobStatus, JobType
 from app.web.main import app
 
 client = TestClient(app)
@@ -13,7 +11,9 @@ client = TestClient(app)
 @pytest.fixture(name="mock_job", scope="function", autouse=False)
 def mock_job(db_session: Session) -> models.Job:
     job = models.Job(
-        url="https://example.com", type=JobType.transcript, status=JobStatus.create
+        url="https://example.com",
+        type=models.JobType.transcript,
+        status=models.JobStatus.create,
     )
 
     db_session.add(job)
@@ -28,7 +28,7 @@ def test_create_job_pass(auth_headers: dict[str, str]) -> None:
     res = client.post(
         "/api/v1/jobs",
         headers=auth_headers,
-        json={"url": "https://example.com", "type": JobType.transcript},
+        json={"url": "https://example.com", "type": models.JobType.transcript},
     )
     assert res.status_code == 201
     assert isinstance(res.json()["id"], str)
@@ -43,7 +43,7 @@ def test_create_job_malformed_url(auth_headers: dict[str, str]) -> None:
     res = client.post(
         "/api/v1/jobs",
         headers=auth_headers,
-        json={"url": "example.com", "type": JobType.transcript},
+        json={"url": "example.com", "type": models.JobType.transcript},
     )
     assert res.status_code == 422
 
@@ -52,7 +52,7 @@ def test_create_job_malformed_url(auth_headers: dict[str, str]) -> None:
 # ---
 def test_get_jobs_pass(auth_headers: dict[str, str], mock_job: models.Job) -> None:
     res = client.get(
-        "/api/v1/jobs?type=transcript",
+        "/api/v1/jobs?type=transcribe",
         headers=auth_headers,
     )
     assert len(res.json()) == 1
@@ -85,7 +85,7 @@ def test_get_artifacts_pass(
     auth_headers: dict[str, str], db_session: Session, mock_job: models.Job
 ) -> None:
     artifact = models.Artifact(
-        data=[], job_id=str(mock_job.id), type=schemas.ArtifactType.raw_transcript
+        data=None, job_id=str(mock_job.id), type=models.ArtifactType.raw_transcript
     )
 
     db_session.add(artifact)

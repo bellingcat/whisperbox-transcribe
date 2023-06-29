@@ -13,7 +13,6 @@ from app.web.main import app
 def pytest_configure() -> None:
     if not database_exists(engine.url):
         create_database(engine.url)
-        models.Base.metadata.create_all(engine)
 
 
 def pytest_unconfigure() -> None:
@@ -21,19 +20,21 @@ def pytest_unconfigure() -> None:
         drop_database(engine.url)
 
 
-@pytest.fixture(name="auth_headers", scope="function")
-def auth_header() -> dict[str, str]:
+@pytest.fixture(scope="function")
+def auth_headers() -> dict[str, str]:
     return {"Authorization": f"Bearer {settings.API_SECRET}"}
 
 
-@pytest.fixture(name="db_session", scope="function", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def db_session() -> Generator[Session, None, None]:
+    models.Base.metadata.create_all(engine)
+
     connection = engine.connect()
-    transaction = connection.begin()
 
     with SessionLocal(bind=connection) as session:
         app.dependency_overrides[get_session] = lambda: session
         yield session
         app.dependency_overrides.clear()
-        transaction.rollback()
         connection.close()
+
+    models.Base.metadata.drop_all(bind=engine)

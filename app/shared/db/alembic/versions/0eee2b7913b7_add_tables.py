@@ -1,15 +1,15 @@
-"""add_job_tables
+"""add_tables
 
-Revision ID: dc8582aea0bc
+Revision ID: 0eee2b7913b7
 Revises:
-Create Date: 2023-02-08 12:12:00.808816
+Create Date: 2023-06-29 08:33:26.123728
 
 """
 import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "dc8582aea0bc"
+revision = "0eee2b7913b7"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -54,7 +54,7 @@ def upgrade() -> None:
         sa.Column("data", sa.JSON(none_as_null=True), nullable=True),
         sa.Column(
             "type",
-            sa.Enum("raw_transcript", name="artifacttype"),
+            sa.Enum("raw_transcript", "language_detection", name="artifacttype"),
             nullable=False,
         ),
         sa.Column(

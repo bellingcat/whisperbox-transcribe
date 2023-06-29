@@ -1,17 +1,6 @@
-from typing import Any
-
 from pydantic import AnyHttpUrl, BaseModel, Field
 
-import app.shared.db.schemas as schemas
-
-
-class DetailResponse(BaseModel):
-    detail: str
-
-
-DEFAULT_RESPONSES: dict[int | str, dict[str, Any]] = {
-    401: {"model": DetailResponse, "description": "Not authenticated"}
-}
+import app.shared.db.models as models
 
 
 class PostJobPayload(BaseModel):
@@ -21,7 +10,7 @@ class PostJobPayload(BaseModel):
         )
     )
 
-    type: schemas.JobType = Field(
+    type: models.JobType = Field(
         description="""Type of this job.
         `transcript` uses the original language of the audio.
         `translation` creates an automatic translation to english.

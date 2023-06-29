@@ -16,8 +16,6 @@ class Settings(BaseSettings):
 
 
 if "pytest" in sys.modules:
-    settings = Settings(
-        _env_file=".env.test", _env_file_encoding="utf-8"
-    )  # type: ignore
+    settings = Settings(_env_file=".env.test")  # type: ignore
 else:
     settings = Settings()  # type: ignore

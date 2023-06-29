@@ -1,42 +1,16 @@
-import enum
 from datetime import datetime
 from uuid import UUID
 
 from pydantic import AnyHttpUrl, BaseModel, Field
 
+from app.shared.db.models import ArtifactType, JobStatus, JobType
 
-class WithDbFields(BaseModel):
-    id: UUID
-    created_at: datetime
-    updated_at: datetime | None
-
-    class Config:
-        orm_mode = True
-
-
-class ArtifactType(str, enum.Enum):
-    raw_transcript = "raw_transcript"
-
-
-class JobType(str, enum.Enum):
-    transcript = "transcript"
-    translation = "translation"
-    language_detection = "language_detection"
-
-
-class JobStatus(str, enum.Enum):
-    """Processing status of a job."""
-
-    create = "create"
-    processing = "processing"
-    error = "error"
-    success = "success"
+# JSON field types
 
 
 class JobConfig(BaseModel):
     """Configuration for a job."""
 
-    # TODO: limit to locales selected by whisper.
     language: str | None = Field(
         description=(
             "Spoken language in the media file. "
@@ -51,19 +25,10 @@ class JobMeta(BaseModel):
     error: str | None = Field(
         description="Will contain a descriptive error message if processing failed."
     )
+
     task_id: UUID | None = Field(
         description="Internal celery id of this job submission."
     )
-
-
-class Job(WithDbFields):
-    """A transcription job for one media file."""
-
-    status: JobStatus
-    type: JobType
-    url: AnyHttpUrl
-    meta: JobMeta | None
-    config: JobConfig | None
 
 
 class RawTranscript(BaseModel):
@@ -81,9 +46,35 @@ class RawTranscript(BaseModel):
     no_speech_prob: float
 
 
-class Artifact(WithDbFields):
-    """whisper output for one job."""
+class LanguageDetection(BaseModel):
+    """A language detection"""
 
-    data: list[RawTranscript] | None
+    code: str
+
+
+# DB objects
+
+
+class WithDbFields(BaseModel):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime | None
+
+    class Config:
+        orm_mode = True
+
+
+class Job(WithDbFields):
+    """A transcription job for one media file."""
+
+    status: JobStatus
+    type: JobType
+    url: AnyHttpUrl
+    meta: JobMeta | None
+    config: JobConfig | None
+
+
+class Artifact(WithDbFields):
     job_id: UUID
+    data: LanguageDetection | RawTranscript | None
     type: ArtifactType
