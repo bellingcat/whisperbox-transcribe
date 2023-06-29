@@ -9,12 +9,18 @@ import requests
 import torch
 import whisper
 from pydantic import BaseModel
+from sqlalchemy import JSON, Column
 
-import app.shared.db.schemas as schemas
+import app.shared.db.models as models
 from app.worker.strategies.base import BaseStrategy, TaskReturnValue
 
 
-class DecodeOptions(BaseModel):
+class DecodingOptions(BaseModel):
+    """
+    Options passed to the whipser model.
+    This mirrors private type `whisper.DecodingOptions`.
+    """
+
     language: str | None
     task: Literal["translate", "transcribe"]
 
@@ -40,27 +46,24 @@ class LocalStrategy(BaseStrategy):
         except OSError:
             pass
 
-    def transcribe(self, url, job_id, config):
-        return (
-            schemas.ArtifactType.raw_transcript,
-            self._run_whisper(
-                self._download(url, job_id), "transcribe", config, job_id
-            ),
+    def transcribe(self, job):
+        result = self._run_whisper(
+            self._download(job.url, job.id), "transcribe", job.config, job.id
         )
 
-    def translate(self, url, job_id, config) -> TaskReturnValue:
-        return (
-            schemas.ArtifactType.raw_transcript,
-            self._run_whisper(
-                self._download(url, job_id),
-                "translate",
-                config,
-                job_id,
-            ),
-        )
+        return (models.ArtifactType.raw_transcript, result)
 
-    def detect_language(self, url, job_id, config) -> TaskReturnValue:
-        file = self._download(url, job_id)
+    def translate(self, job) -> TaskReturnValue:
+        result = self._run_whisper(
+            self._download(job.url, job.id),
+            "translate",
+            job.config,
+            job.id,
+        )
+        return (models.ArtifactType.raw_transcript, result)
+
+    def detect_language(self, job) -> TaskReturnValue:
+        file = self._download(job.url, job.id)
 
         audio = whisper.pad_or_trim(whisper.load_audio(file))
 
@@ -68,7 +71,7 @@ class LocalStrategy(BaseStrategy):
         _, probs = self.model.detect_language(mel)
 
         return (
-            schemas.ArtifactType.language_detection,
+            models.ArtifactType.language_detection,
             {"code": max(probs, key=probs.get)},
         )
 
@@ -90,16 +93,18 @@ class LocalStrategy(BaseStrategy):
         self,
         filepath: str,
         task: Literal["translate", "transcribe"],
-        config: schemas.JobConfig | None,
+        config: Column[JSON],
         job_id: UUID,
     ) -> list[Any]:
         try:
-            language = config.language if config else None
-
             result = self.model.transcribe(
                 filepath,
+                # turning this off might make the transcription less accurate,
+                # but significantly reduces amount of model halucinations.
                 condition_on_previous_text=False,
-                **DecodeOptions(task=task, language=language).dict(),
+                **DecodingOptions(
+                    task=task, language=config.language if config else None
+                ).dict(),
             )
 
             return result["segments"]

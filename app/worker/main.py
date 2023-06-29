@@ -6,7 +6,6 @@ from celery import Task
 from sqlalchemy.orm import Session
 
 import app.shared.db.models as models
-import app.shared.db.schemas as schemas
 from app.shared.celery import get_celery_binding
 from app.shared.db.base import SessionLocal
 from app.shared.settings import settings
@@ -31,7 +30,7 @@ class TranscribeTask(Task):
         return self.run(*args, **kwargs)
 
 
-def select_task_processor(task: Task, job: schemas.Job) -> TaskProtocol:
+def select_task_processor(task: Task, job: models.Job) -> TaskProtocol:
     if job.type == models.JobType.transcript:
         return task.strategy.transcribe
     elif job.type == models.JobType.translation:
@@ -51,7 +50,7 @@ def transcribe(self: Task, job_id: UUID) -> None:
         # runs in a separate thread => requires sqlite's WAL mode to be enabled.
         db: Session = SessionLocal()
 
-        # unit of work: set task status to processing.
+        # check if passed job should be processed.
 
         job = db.query(models.Job).filter(models.Job.id == job_id).one_or_none()
 
@@ -63,24 +62,23 @@ def transcribe(self: Task, job_id: UUID) -> None:
             logger.warn("[{job.id}]: job has already been processed, abort.")
             return
 
-        logger.info(f"[{job.id}]: received eligible job.")
+        logger.debug(f"[{job.id}]: start processing {job.type} job.")
+
+        # unit of work: set task status to processing.
 
         job.meta = {"task_id": self.request.id}
         job.status = models.JobStatus.processing
-
         db.commit()
-        logger.info(f"[{job.id}]: finished setting task to status processing.")
+
+        logger.debug(f"[{job.id}]: finished setting task to {job.status}.")
 
         # unit of work: process job with whisper.
-        job_record = schemas.Job.from_orm(job)
 
-        processor = select_task_processor(self, job_record)
+        processor = select_task_processor(self, job)
 
-        result_type, result = processor(
-            url=job_record.url, job_id=job_record.id, config=job_record.config
-        )
+        result_type, result = processor(job)
 
-        logger.info(f"[{job.id}]: successfully processed audio.")
+        logger.debug(f"[{job.id}]: successfully processed audio.")
 
         artifact = models.Artifact(job_id=str(job.id), data=result, type=result_type)
 
@@ -89,7 +87,8 @@ def transcribe(self: Task, job_id: UUID) -> None:
         job.status = models.JobStatus.success
 
         db.commit()
-        logger.info(f"[{job.id}]: successfully stored artifact.")
+        logger.debug(f"[{job.id}]: successfully stored artifact.")
+
     except Exception as e:
         if job and db:
             db.rollback()

@@ -1,11 +1,13 @@
 import enum
 import uuid
 
+from pydantic import BaseModel, Field
 from sqlalchemy import JSON, VARCHAR, Column, DateTime, Enum, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, declarative_base, declarative_mixin, declared_attr
 
 Base = declarative_base()
+
 
 # Enums
 
@@ -32,7 +34,55 @@ class ArtifactType(str, enum.Enum):
     language_detection = "language_detection"
 
 
-# SQLAlchemy models
+# JSON field types
+
+
+class JobConfig(BaseModel):
+    """(JSON) Configuration for a job."""
+
+    language: str | None = Field(
+        description=(
+            "Spoken language in the media file. "
+            "While optional, this can improve output."
+        )
+    )
+
+
+class JobMeta(BaseModel):
+    """(JSON) Metadata relating to a job's execution."""
+
+    error: str | None = Field(
+        description="Will contain a descriptive error message if processing failed."
+    )
+
+    task_id: uuid.UUID | None = Field(
+        description="Internal celery id of this job submission."
+    )
+
+
+class RawTranscript(BaseModel):
+    """(JSON) A single transcript passage returned by whisper."""
+
+    id: int
+    seek: int
+    start: float
+    end: float
+    text: str
+    tokens: list[int]
+    temperature: float
+    avg_logprob: float
+    compression_ratio: float
+    no_speech_prob: float
+
+
+class LanguageDetection(BaseModel):
+    """A language detection"""
+
+    language_code: str
+
+
+# Sum type for all possible artifact data values
+ArtifactData = list[RawTranscript] | LanguageDetection | None
 
 
 @declarative_mixin

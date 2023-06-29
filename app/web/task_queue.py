@@ -15,9 +15,10 @@ class TaskQueue:
         self.celery = get_celery_binding()
 
     def queue_task(self, job: models.Job):
-        # queue an async transcription task.
-        # we use a signature here to allow full separation of
-        # worker processes and dependencies.
+        """
+        Queues an async transcription job. We use a celery signature here to
+        allow for full separation of worker processes and dependencies.
+        """
         transcribe = self.celery.signature("app.worker.main.transcribe")
         transcribe.delay(job.id)
 
