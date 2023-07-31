@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import AnyHttpUrl, BaseModel
+from pydantic import AnyHttpUrl, BaseModel, ConfigDict
 
 from app.shared.db.models import (
     ArtifactData,
@@ -18,10 +18,8 @@ from app.shared.db.models import (
 class WithDbFields(BaseModel):
     id: UUID
     created_at: datetime
-    updated_at: datetime | None
-
-    class Config:
-        orm_mode = True
+    updated_at: datetime | None = None
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Job(WithDbFields):
@@ -30,8 +28,8 @@ class Job(WithDbFields):
     status: JobStatus
     type: JobType
     url: AnyHttpUrl
-    meta: JobMeta | None
-    config: JobConfig | None
+    meta: JobMeta | None = None
+    config: JobConfig | None = None
 
 
 class Artifact(WithDbFields):

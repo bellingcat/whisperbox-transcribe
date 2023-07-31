@@ -129,10 +129,11 @@ def app_factory(
         )
 
         language: str | None = Field(
+            default=None,
             description=(
                 "Spoken language in the media file. "
                 "While optional, this can improve output when set."
-            )
+            ),
         )
 
     @api_router.post(
@@ -161,7 +162,7 @@ def app_factory(
 
         # create a job with status "create" and save it to the database.
         job = models.Job(
-            url=payload.url,
+            url=str(payload.url),
             status=dtos.JobStatus.create,
             type=payload.type,
             config={"language": payload.language} if payload.language else None,

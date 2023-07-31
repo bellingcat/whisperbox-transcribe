@@ -17,7 +17,7 @@ class DecodingOptions(BaseModel):
     This mirrors private type `whisper.DecodingOptions`.
     """
 
-    language: str | None
+    language: str | None = None
     task: Literal["translate", "transcribe"]
 
 

@@ -5,16 +5,17 @@ version = "0.1.0"
 
 dependencies=[
   "celery[redis] ==5.3.1",
-  "sqlalchemy[mypy] ==2.0.17",
-  "pydantic ==1.10.9"
+  "sqlalchemy[mypy] ==2.0.19",
+  "pydantic ==2.1.1",
+  "pydantic-settings ==2.0.2"
 ]
 
 [project.optional-dependencies]
 web=[
   "alembic ==1.11.1",
-  "fastapi ==0.98.0",
-  "uvicorn[standard] ==0.22.0",
-  "gunicorn ==20.1.0"
+  "fastapi ==0.100.1",
+  "uvicorn[standard] ==0.23.2",
+  "gunicorn ==21.2.0"
 ]
 
 worker=[
@@ -25,17 +26,17 @@ worker=[
 
 tooling = [
   # code formatting
-  "black ==23.3.0",
+  "black ==23.7.0",
   # linting
-  "ruff ==0.0.275",
+  "ruff ==0.0.280",
   # tests
-  "httpx",
+  "httpx ==0.24.1",
   "sqlalchemy-utils ==0.41.1",
   "python-dotenv ==1.0.0",
   "pytest ==7.4.0",
   # types
   "mypy ==1.4.1",
-  "types-requests ==2.31.0.1"
+  "types-requests ==2.31.0.2"
 ]
 
 [tool.ruff]
