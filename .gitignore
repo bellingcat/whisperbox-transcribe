@@ -169,3 +169,7 @@ whisperbox-transcribe.sqlite*
 
 # ruff
 .ruff_cache
+
+# other private files
+/data
+.env.prod

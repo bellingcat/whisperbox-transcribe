@@ -18,8 +18,8 @@ test:
 	pytest
 
 run:
-	docker compose -f docker-compose.base.yml -f docker-compose.prod.yml build -d
-	docker compose -f docker-compose.base.yml -f docker-compose.prod.yml up --remove-orphans
+	docker compose -f docker-compose.base.yml -f docker-compose.prod.yml build
+	docker compose -f docker-compose.base.yml -f docker-compose.prod.yml up -d --remove-orphans
 
 stop:
 	docker compose -f docker-compose.base.yml -f docker-compose.prod.yml down
