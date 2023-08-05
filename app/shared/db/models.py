@@ -41,10 +41,11 @@ class JobConfig(BaseModel):
     """(JSON) Configuration for a job."""
 
     language: str | None = Field(
+        default=None,
         description=(
             "Spoken language in the media file. "
             "While optional, this can improve output."
-        )
+        ),
     )
 
 
@@ -52,11 +53,13 @@ class JobMeta(BaseModel):
     """(JSON) Metadata relating to a job's execution."""
 
     error: str | None = Field(
-        description="Will contain a descriptive error message if processing failed."
+        default=None,
+        description="Will contain a descriptive error message if processing failed.",
     )
 
     task_id: uuid.UUID | None = Field(
-        description="Internal celery id of this job submission."
+        default=None,
+        description="Internal celery id of this job submission.",
     )
 
 
