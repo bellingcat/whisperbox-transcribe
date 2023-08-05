@@ -33,6 +33,8 @@ class Job(WithDbFields):
 
 
 class Artifact(WithDbFields):
+    """A transcription artifact."""
+
     job_id: UUID
     data: ArtifactData
     type: ArtifactType

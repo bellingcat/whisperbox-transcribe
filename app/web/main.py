@@ -47,7 +47,7 @@ def app_factory(
         response_model=list[dtos.Job],
         summary="Get metadata for all jobs",
     )
-    def get_transcripts(
+    def get_jobs(
         session: DatabaseSession,
         type: dtos.JobType | None = None,
     ) -> list[models.Job]:
@@ -65,7 +65,7 @@ def app_factory(
         response_model=dtos.Job,
         summary="Get metadata for one job",
     )
-    def get_transcript(
+    def get_job(
         session: DatabaseSession,
         id: UUID = Path(),
     ) -> models.Job | None:
