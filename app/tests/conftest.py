@@ -48,6 +48,7 @@ def mock_job(db_session):
         url="https://example.com",
         type=models.JobType.transcript,
         status=models.JobStatus.create,
+        meta={ "task_id": "foo_bar" }
     )
     db_session.add(job)
     db_session.flush()
