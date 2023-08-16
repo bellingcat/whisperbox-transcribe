@@ -28,7 +28,7 @@ tooling = [
   # code formatting
   "black ==23.7.0",
   # linting
-  "ruff ==0.0.282",
+  "ruff ==0.0.284",
   # tests
   "httpx ==0.24.1",
   "sqlalchemy-utils ==0.41.1",
