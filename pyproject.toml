@@ -13,7 +13,7 @@ dependencies=[
 [project.optional-dependencies]
 web=[
   "alembic ==1.11.3",
-  "fastapi ==0.100.1",
+  "fastapi ==0.101.1",
   "uvicorn[standard] ==0.23.2",
   "gunicorn ==21.2.0"
 ]
