@@ -18,31 +18,34 @@ def pytest_unconfigure() -> None:
         drop_database(engine.url)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def auth_headers() -> dict[str, str]:
     return {"Authorization": f"Bearer {settings.API_SECRET}"}
 
 
-@pytest.fixture(scope="function", autouse=True)
-def db_session():
+@pytest.fixture()
+def test_db():
     models.Base.metadata.create_all(engine)
     connection = engine.connect()
-
-    with SessionLocal(bind=connection) as session:
-        yield session
-        connection.close()
-
+    yield connection
+    connection.close()
     models.Base.metadata.drop_all(bind=engine)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
+def db_session(test_db):
+    with SessionLocal(bind=test_db) as session:
+        yield session
+
+
+@pytest.fixture()
 def client(db_session):
     app = app_factory(lambda: db_session)
     client = TestClient(app)
     return client
 
 
-@pytest.fixture(scope="function", autouse=False)
+@pytest.fixture()
 def mock_job(db_session):
     job = models.Job(
         url="https://example.com",
@@ -51,21 +54,21 @@ def mock_job(db_session):
         meta={"task_id": "5c790c76-2cc1-4e91-a305-443df55a4a4c"},
     )
     db_session.add(job)
-    db_session.flush()
+    db_session.commit()
     return job
 
 
-@pytest.fixture(scope="function", autouse=False)
+@pytest.fixture()
 def mock_artifact(db_session, mock_job):
     artifact = models.Artifact(
         data=None, job_id=str(mock_job.id), type=models.ArtifactType.raw_transcript
     )
     db_session.add(artifact)
-    db_session.flush()
+    db_session.commit()
     return artifact
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def sharing_enabled():
     settings.ENABLE_SHARING = True
     yield

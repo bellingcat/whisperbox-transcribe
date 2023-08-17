@@ -107,10 +107,25 @@ def test_get_artifacts_not_found(client, auth_headers, mock_job):
 # DELETE /api/v1/jobs
 # ---
 def test_delete_job_pass(client, auth_headers, mock_job, db_session):
-    res = client.delete(
+    res_job = client.get(
         f"/api/v1/jobs/{mock_job.id}",
         headers=auth_headers,
     )
 
-    assert db_session.query(models.Job).count() == 0
-    assert res.status_code == 204
+    assert res_job.status_code == 200
+
+    client.delete(
+        f"/api/v1/jobs/{mock_job.id}",
+        headers=auth_headers,
+    )
+
+    # HACK: this catches a missed .commit().
+    # TODO: clean up pytest database handling.
+    db_session.rollback()
+
+    res_job_missing = client.get(
+        f"/api/v1/jobs/{mock_job.id}",
+        headers=auth_headers,
+    )
+
+    assert res_job_missing.status_code == 404
