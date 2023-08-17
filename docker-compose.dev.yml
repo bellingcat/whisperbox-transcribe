@@ -13,6 +13,8 @@ services:
 
   web:
     command: bash -c "alembic upgrade head && uvicorn app.web:app --reload --host ${HOST:-0.0.0.0} --port ${PORT:-8000} --log-level info"
+    # NOTE: the docker on mac mount adapter (virtioFS) does not support flock.
+    # this can cause the sqlite database to corrupt when written from worker <> api simultaneously.
     volumes:
       - ./:/etc/whisperbox-transcribe/
     labels:
