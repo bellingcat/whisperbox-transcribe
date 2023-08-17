@@ -24,7 +24,7 @@ services:
       test: rabbitmq-diagnostics check_port_connectivity
       interval: 3s
       timeout: 3s
-      retries: 3
+      retries: 10
     environment:
       RABBITMQ_DEFAULT_USER: rabbitmq
       RABBITMQ_DEFAULT_PASS: rabbitmq
