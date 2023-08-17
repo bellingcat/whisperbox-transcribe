@@ -1,4 +1,3 @@
-from asyncio.log import logger
 from typing import Any
 from uuid import UUID
 
@@ -7,11 +6,16 @@ from sqlalchemy.orm import Session
 
 import app.shared.db.models as models
 from app.shared.celery import get_celery_binding
-from app.shared.db.base import SessionLocal
-from app.shared.settings import settings
+from app.shared.db.base import make_engine, make_session_local
+from app.shared.logger import logger
+from app.shared.settings import Settings
 from app.worker.strategies.local import LocalStrategy
 
-celery = get_celery_binding()
+# TODO: refactor to be part of a Task instance.
+settings = Settings()  # type: ignore
+celery = get_celery_binding(settings.BROKER_URL)
+engine = make_engine(settings.DATABASE_URI)
+SessionLocal = make_session_local(engine)
 
 
 class TranscribeTask(Task):
@@ -43,14 +47,24 @@ class TranscribeTask(Task):
     task_acks_on_failure_or_timeout=True,
     task_reject_on_worker_lost=True,
 )
-def transcribe(self: Task, job_id: UUID) -> None:
+def transcribe(self: TranscribeTask, job_id: UUID) -> None:
+    session: Session | None = None
+    job: models.Job | None = None
+
     try:
+        if not self.strategy:
+            raise Exception("expected a transcription strategy to be defined.")
+
         # runs in a separate thread => requires sqlite's WAL mode to be enabled.
-        db: Session = SessionLocal()
+        session = SessionLocal()
+
+        # work around mypy not inferring the sum type correctly.
+        if not session:
+            raise Exception("failed to acquire a session.")
 
         # check if passed job should be processed.
 
-        job = db.query(models.Job).filter(models.Job.id == job_id).one_or_none()
+        job = session.query(models.Job).filter(models.Job.id == job_id).one_or_none()
 
         if job is None:
             logger.warn("[{job.id}]: Received unknown job, abort.")
@@ -62,7 +76,7 @@ def transcribe(self: Task, job_id: UUID) -> None:
 
         logger.debug(f"[{job.id}]: start processing {job.type} job.")
 
-        if job.meta:
+        if job.meta is not None:
             attempts = 1 + (job.meta.get("attempts") or 0)
         else:
             attempts = 1
@@ -77,7 +91,7 @@ def transcribe(self: Task, job_id: UUID) -> None:
         job.meta = {"task_id": self.request.id, "attempts": attempts}
 
         job.status = models.JobStatus.processing
-        db.commit()
+        session.commit()
 
         logger.debug(f"[{job.id}]: finished setting task to {job.status}.")
 
@@ -86,25 +100,27 @@ def transcribe(self: Task, job_id: UUID) -> None:
         logger.debug(f"[{job.id}]: successfully processed audio.")
 
         artifact = models.Artifact(job_id=str(job.id), data=result, type=result_type)
-        db.add(artifact)
+        session.add(artifact)
 
         job.status = models.JobStatus.success
-        db.commit()
+        session.commit()
 
         logger.debug(f"[{job.id}]: successfully stored artifact.")
 
     except Exception as e:
-        if job and db:
-            if db.in_transaction():
-                db.rollback()
-            if job.meta:
-                job.meta = {**job.meta, "error": str(e)}  # type: ignore
+        if job and session:
+            if session.in_transaction():
+                session.rollback()
+            if job.meta is not None:
+                job.meta = {**job.meta, "error": str(e)}
             else:
                 job.meta = {"error": str(e)}
 
             job.status = models.JobStatus.error
-            db.commit()
+            session.commit()
         raise
     finally:
-        self.strategy.cleanup(job_id)
-        db.close()
+        if self.strategy:
+            self.strategy.cleanup(job_id)
+        if session:
+            session.close()

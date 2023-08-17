@@ -7,8 +7,8 @@ from app.shared.celery import get_celery_binding
 class TaskQueue:
     celery: Celery
 
-    def __init__(self) -> None:
-        self.celery = get_celery_binding()
+    def __init__(self, broker_url: str) -> None:
+        self.celery = get_celery_binding(broker_url=broker_url)
 
     def queue_task(self, job: models.Job):
         """

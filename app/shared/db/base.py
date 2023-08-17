@@ -1,26 +1,21 @@
-from typing import Any, Generator
+from typing import Any
 
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import Session, sessionmaker
-
-from app.shared.settings import settings
-
-engine = create_engine(settings.DATABASE_URI, connect_args={"check_same_thread": False})
+from sqlalchemy import Engine, create_engine, event
+from sqlalchemy.orm import sessionmaker
 
 
-@event.listens_for(engine, "connect")
-def set_sqlite_pragma(conn: Any, _: Any) -> None:
-    cursor = conn.cursor()
-    cursor.execute("PRAGMA journal_mode=WAL")
-    cursor.close()
+def make_engine(database_url: str):
+    engine = create_engine(database_url, connect_args={"check_same_thread": False})
+
+    @event.listens_for(engine, "connect")
+    def set_sqlite_pragma(conn: Any, _: Any) -> None:
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.close()
+
+    return engine
 
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def get_session() -> Generator[Session, None, None]:
-    session: Session = SessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
+def make_session_local(engine: Engine):
+    session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    return session_local
