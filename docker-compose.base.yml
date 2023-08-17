@@ -27,11 +27,12 @@ services:
       retries: 10
     environment:
       RABBITMQ_DEFAULT_USER: rabbitmq
-      RABBITMQ_DEFAULT_PASS: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq_password
       RABBITMQ_DEFAULT_VHOST: whisperbox
+
     volumes:
       - ./conf/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
-      - ./data:/var/lib/rabbitmq/mnesia/
+      - rabbitmq-data:/var/lib/rabbitmq/mnesia/
 
   worker:
     env_file: .env
@@ -63,3 +64,6 @@ networks:
     driver: bridge
   traefik:
     driver: bridge
+
+volumes:
+  rabbitmq-data:
