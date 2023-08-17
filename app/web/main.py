@@ -112,6 +112,7 @@ def app_factory(
     ) -> None:
         """Remove metadata and artifacts for a single job."""
         session.query(models.Job).filter(models.Job.id == str(id)).delete()
+        session.commit()
         return None
 
     class PostJobPayload(BaseModel):
