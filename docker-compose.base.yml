@@ -12,14 +12,26 @@ services:
     networks:
       - traefik
 
-  redis:
-    image: redis:7-alpine
+  rabbitmq:
+    image: rabbitmq:3-alpine
     networks:
       - app
     deploy:
       resources:
         limits:
-          memory: 128M
+          memory: 256M
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 3s
+      timeout: 3s
+      retries: 3
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq
+      RABBITMQ_DEFAULT_VHOST: whisperbox
+    volumes:
+      - ./conf/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./data:/var/lib/rabbitmq/mnesia/
 
   worker:
     env_file: .env
@@ -28,27 +40,23 @@ services:
       dockerfile: worker.Dockerfile
       args:
         WHISPER_MODEL: ${WHISPER_MODEL}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - app
-    depends_on:
-      - redis
-    healthcheck:
-      test: ["CMD-SHELL", "celery -b ${BROKER_URL} inspect ping -d celery@$$HOSTNAME"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
   web:
     env_file: .env
     build:
       context: .
       dockerfile: web.Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - app
       - traefik
-    depends_on:
-      worker:
-        condition: service_healthy
 
 networks:
   app:

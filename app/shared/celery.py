@@ -9,4 +9,5 @@ def get_celery_binding() -> Celery:
         broker_connection_retry=False,
         broker_connection_retry_on_startup=False,
     )
+
     return celery

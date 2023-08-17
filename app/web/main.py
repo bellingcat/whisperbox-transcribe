@@ -1,4 +1,3 @@
-from contextlib import asynccontextmanager
 from typing import Annotated, Callable, Generator
 from uuid import UUID
 
@@ -8,7 +7,6 @@ from sqlalchemy.orm import Session
 
 import app.shared.db.models as models
 import app.web.dtos as dtos
-from app.shared.db.base import SessionLocal
 from app.shared.settings import settings
 from app.web.security import authenticate_api_key
 from app.web.task_queue import TaskQueue
@@ -21,17 +19,10 @@ def app_factory(
 
     task_queue = TaskQueue()
 
-    @asynccontextmanager
-    async def lifespan(_: FastAPI):
-        with SessionLocal() as session:
-            task_queue.rehydrate(session)
-        yield
-
     app = FastAPI(
         description=(
             "whisperbox-transcribe is an async HTTP wrapper for openai/whisper."
         ),
-        lifespan=lifespan,
         title="whisperbox-transcribe",
     )
 

@@ -26,13 +26,18 @@ services:
     volumes:
       - ./:/etc/whisperbox-transcribe/
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - 15672:15672
+
   flower:
     image: mher/flower
-    command: celery --broker redis://redis:6379/0 flower --port=5555
+    command: celery --broker amqp://rabbitmq:rabbitmq@rabbitmq:5672/whisperbox flower --port=5555
     ports:
       - 5555:5555
     depends_on:
-      worker:
-        condition: service_healthy
+      - worker
+      - rabbitmq
     networks:
       - app

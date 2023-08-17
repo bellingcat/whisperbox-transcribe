@@ -57,6 +57,7 @@ Builds and starts the docker containers.
 ```
 # Bindings
 http://localhost:5555                        => Celery dashboard
+http://localhost:15672                       => RabbitMQ dashboard
 http://whisperbox-transcribe.localhost       => API
 http://whisperbox-transcribe.localhost/docs  => API docs
 ./whisperbox-transcribe.sqlite               => Database
