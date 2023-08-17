@@ -1,3 +1,6 @@
+x-broker-environment: &broker-environment
+  BROKER_URL: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672"
+
 version: "3.8"
 name: whisperbox-transcribe
 
@@ -12,46 +15,59 @@ services:
     networks:
       - traefik
 
-  redis:
-    image: redis:7-alpine
+  rabbitmq:
+    env_file: .env
+    image: rabbitmq:3-alpine
     networks:
       - app
     deploy:
       resources:
         limits:
-          memory: 128M
+          memory: 256M
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+    volumes:
+      - ./conf/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - rabbitmq-data:/var/lib/rabbitmq/mnesia/
 
   worker:
     env_file: .env
+    environment:
+      <<: *broker-environment
     build:
       context: .
       dockerfile: worker.Dockerfile
       args:
         WHISPER_MODEL: ${WHISPER_MODEL}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - app
-    depends_on:
-      - redis
-    healthcheck:
-      test: ["CMD-SHELL", "celery -b ${BROKER_URL} inspect ping -d celery@$$HOSTNAME"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
   web:
     env_file: .env
+    environment:
+      <<: *broker-environment
     build:
       context: .
       dockerfile: web.Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - app
       - traefik
-    depends_on:
-      worker:
-        condition: service_healthy
 
 networks:
   app:
     driver: bridge
   traefik:
     driver: bridge
+
+volumes:
+  rabbitmq-data:

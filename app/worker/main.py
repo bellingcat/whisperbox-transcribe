@@ -39,6 +39,9 @@ class TranscribeTask(Task):
     bind=True,
     soft_time_limit=settings.TASK_SOFT_TIME_LIMIT,
     time_limit=settings.TASK_HARD_TIME_LIMIT,
+    task_acks_late=True,
+    task_acks_on_failure_or_timeout=True,
+    task_reject_on_worker_lost=True,
 )
 def transcribe(self: Task, job_id: UUID) -> None:
     try:
@@ -59,9 +62,20 @@ def transcribe(self: Task, job_id: UUID) -> None:
 
         logger.debug(f"[{job.id}]: start processing {job.type} job.")
 
+        if job.meta:
+            attempts = 1 + (job.meta.get("attempts") or 0)
+        else:
+            attempts = 1
+
+        # SAFEGUARD: celery's retry policies do not handle lost workers, retry once.
+        # @see https://github.com/celery/celery/pull/6103
+        if attempts > 2:
+            raise Exception("Maximum number of retries exceeded for killed worker.")
+
         # unit of work: set task status to processing.
 
-        job.meta = {"task_id": self.request.id}
+        job.meta = {"task_id": self.request.id, "attempts": attempts}
+
         job.status = models.JobStatus.processing
         db.commit()
 
@@ -83,7 +97,11 @@ def transcribe(self: Task, job_id: UUID) -> None:
         if job and db:
             if db.in_transaction():
                 db.rollback()
-            job.meta = {**job.meta, "error": str(e)}  # type: ignore
+            if job.meta:
+                job.meta = {**job.meta, "error": str(e)}  # type: ignore
+            else:
+                job.meta = {"error": str(e)}
+
             job.status = models.JobStatus.error
             db.commit()
         raise

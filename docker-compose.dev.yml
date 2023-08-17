@@ -13,6 +13,8 @@ services:
 
   web:
     command: bash -c "alembic upgrade head && uvicorn app.web:app --reload --host ${HOST:-0.0.0.0} --port ${PORT:-8000} --log-level info"
+    # NOTE: the docker on mac mount adapter (virtioFS) does not support flock.
+    # this can cause the sqlite database to corrupt when written from worker <> api simultaneously.
     volumes:
       - ./:/etc/whisperbox-transcribe/
     labels:
@@ -26,13 +28,18 @@ services:
     volumes:
       - ./:/etc/whisperbox-transcribe/
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - 15672:15672
+
   flower:
     image: mher/flower
-    command: celery --broker redis://redis:6379/0 flower --port=5555
+    command: celery --broker amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672 flower --port=5555
     ports:
       - 5555:5555
     depends_on:
-      worker:
-        condition: service_healthy
+      - worker
+      - rabbitmq
     networks:
       - app

@@ -52,6 +52,11 @@ class JobConfig(BaseModel):
 class JobMeta(BaseModel):
     """(JSON) Metadata relating to a job's execution."""
 
+    attempts: int | None = Field(
+        default=None,
+        description="Number of processing attempts a job has taken.",
+    )
+
     error: str | None = Field(
         default=None,
         description="Will contain a descriptive error message if processing failed.",
