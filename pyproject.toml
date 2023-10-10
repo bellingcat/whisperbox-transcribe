@@ -6,7 +6,7 @@ version = "1.0.0"
 dependencies=[
   "celery ==5.3.1",
   "sqlalchemy[mypy] ==2.0.20",
-  "pydantic ==2.1.1",
+  "pydantic ==2.4.2",
   "pydantic-settings ==2.0.3"
 ]
 
