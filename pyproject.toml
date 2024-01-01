@@ -36,7 +36,7 @@ tooling = [
   "pytest ==7.4.4",
   # types
   "mypy ==1.5.1",
-  "types-requests ==2.31.0.8"
+  "types-requests ==2.31.0.20231231"
 ]
 
 [tool.ruff]
