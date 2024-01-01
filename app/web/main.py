@@ -1,4 +1,4 @@
-from typing import Annotated, Callable, Generator
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Path
@@ -7,18 +7,15 @@ from sqlalchemy.orm import Session
 
 import app.shared.db.models as models
 import app.web.dtos as dtos
-from app.shared.settings import settings
-from app.web.security import authenticate_api_key
+from app.web.injections.db import get_session
+from app.web.injections.security import api_key_auth, sharing_auth
+from app.web.injections.task_queue import get_task_queue
 from app.web.task_queue import TaskQueue
 
+DatabaseSession = Annotated[Session, Depends(get_session)]
 
-def app_factory(
-    session_getter: Callable[[], Generator[Session, None, None]]
-) -> FastAPI:
-    DatabaseSession = Annotated[Session, Depends(session_getter)]
 
-    task_queue = TaskQueue()
-
+def app_factory():
     app = FastAPI(
         description=(
             "whisperbox-transcribe is an async HTTP wrapper for openai/whisper."
@@ -28,13 +25,13 @@ def app_factory(
 
     api_router = APIRouter(prefix="/api/v1")
 
-    @api_router.get("/", response_model=None, status_code=204)
-    def api_root() -> None:
+    @api_router.get("/", status_code=204)
+    def api_root():
         return None
 
     @api_router.get(
         "/jobs",
-        dependencies=[Depends(authenticate_api_key)],
+        dependencies=[Depends(api_key_auth)],
         response_model=list[dtos.Job],
         summary="Get metadata for all jobs",
     )
@@ -52,7 +49,7 @@ def app_factory(
 
     @api_router.get(
         "/jobs/{id}",
-        dependencies=[] if settings.ENABLE_SHARING else [Depends(authenticate_api_key)],
+        dependencies=[Depends(sharing_auth)],
         response_model=dtos.Job,
         summary="Get metadata for one job",
     )
@@ -72,7 +69,7 @@ def app_factory(
 
     @api_router.get(
         "/jobs/{id}/artifacts",
-        dependencies=[] if settings.ENABLE_SHARING else [Depends(authenticate_api_key)],
+        dependencies=[Depends(api_key_auth)],
         response_model=list[dtos.Artifact],
         summary="Get all artifacts for one job",
     )
@@ -93,7 +90,7 @@ def app_factory(
 
     @api_router.delete(
         "/jobs/{id}",
-        dependencies=[Depends(authenticate_api_key)],
+        dependencies=[Depends(sharing_auth)],
         status_code=204,
         summary="Delete a job with all artifacts",
     )
@@ -130,7 +127,7 @@ def app_factory(
 
     @api_router.post(
         "/jobs",
-        dependencies=[Depends(authenticate_api_key)],
+        dependencies=[Depends(api_key_auth)],
         response_model=dtos.Job,
         status_code=201,
         summary="Enqueue a new job",
@@ -138,6 +135,7 @@ def app_factory(
     def create_job(
         payload: PostJobPayload,
         session: DatabaseSession,
+        task_queue: Annotated[TaskQueue, Depends(get_task_queue)],
     ) -> models.Job:
         """
         Enqueue a new whisper job for processing.

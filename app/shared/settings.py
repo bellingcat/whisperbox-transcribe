@@ -1,5 +1,3 @@
-import sys
-
 from pydantic_settings import BaseSettings
 
 
@@ -13,9 +11,3 @@ class Settings(BaseSettings):
     TASK_HARD_TIME_LIMIT: int = 4 * 60 * 60
 
     ENABLE_SHARING: bool = False
-
-
-if "pytest" in sys.modules:
-    settings = Settings(_env_file=".env.test")  # type: ignore
-else:
-    settings = Settings()  # type: ignore

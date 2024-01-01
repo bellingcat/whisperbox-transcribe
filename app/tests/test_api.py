@@ -1,7 +1,6 @@
-from fastapi.testclient import TestClient
-
 import app.shared.db.models as models
-from app.web.main import app_factory
+from app.shared.settings import Settings
+from app.web.injections.settings import get_settings
 
 
 # POST /api/v1/jobs
@@ -69,9 +68,10 @@ def test_get_job_sharing_disabled(client, mock_job):
     assert res.status_code == 401
 
 
-def test_get_job_sharing_enabled(db_session, mock_job, sharing_enabled):
-    # HACK: delay construction until settings are patched.
-    client = TestClient(app_factory(lambda: db_session))
+def test_get_job_sharing_enabled(client, app, mock_job):
+    app.dependency_overrides[get_settings] = lambda: Settings(
+        _env_file=".env.test", ENABLE_SHARING=True  # type: ignore
+    )
 
     res = client.get(
         f"/api/v1/jobs/{mock_job.id}",

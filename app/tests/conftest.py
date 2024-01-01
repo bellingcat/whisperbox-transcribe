@@ -3,44 +3,57 @@ from fastapi.testclient import TestClient
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
 import app.shared.db.models as models
-from app.shared.db.base import SessionLocal, engine
-from app.shared.settings import settings
+from app.shared.db.base import make_engine, make_session_local
+from app.shared.settings import Settings
+from app.web.injections.db import get_session
+from app.web.injections.settings import get_settings
 from app.web.main import app_factory
 
 
-def pytest_configure() -> None:
-    if not database_exists(engine.url):
-        create_database(engine.url)
-
-
-def pytest_unconfigure() -> None:
-    if database_exists(engine.url):
-        drop_database(engine.url)
+@pytest.fixture()
+def settings():
+    return Settings(_env_file=".env.test")  # type: ignore
 
 
 @pytest.fixture()
-def auth_headers() -> dict[str, str]:
+def auth_headers(settings) -> dict[str, str]:
     return {"Authorization": f"Bearer {settings.API_SECRET}"}
 
 
 @pytest.fixture()
-def test_db():
+def test_db(settings):
+    engine = make_engine(settings.DATABASE_URI)
+
+    if not database_exists(engine.url):
+        create_database(engine.url)
+
     models.Base.metadata.create_all(engine)
+
     connection = engine.connect()
     yield connection
     connection.close()
+
     models.Base.metadata.drop_all(bind=engine)
+    drop_database(engine.url)
 
 
 @pytest.fixture()
 def db_session(test_db):
-    with SessionLocal(bind=test_db) as session:
+    session_local = make_session_local(test_db)
+    with session_local() as session:
         yield session
 
 
 @pytest.fixture()
-def client(db_session):
-    app = app_factory(lambda: db_session)
+def app(db_session, settings):
+    app = app_factory()
+    app.dependency_overrides[get_settings] = lambda: settings
+    app.dependency_overrides[get_session] = lambda: db_session
+    return app
+
+
+@pytest.fixture()
+def client(app):
     client = TestClient(app)
     return client
 
@@ -66,10 +79,3 @@ def mock_artifact(db_session, mock_job):
     db_session.add(artifact)
     db_session.commit()
     return artifact
-
-
-@pytest.fixture()
-def sharing_enabled():
-    settings.ENABLE_SHARING = True
-    yield
-    settings.ENABLE_SHARING = False
