@@ -35,7 +35,7 @@ tooling = [
   "python-dotenv ==1.0.0",
   "pytest ==7.4.4",
   # types
-  "mypy ==1.5.1",
+  "mypy ==1.9.0",
   "types-requests ==2.31.0.20231231"
 ]
 
