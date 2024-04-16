@@ -24,7 +24,7 @@ services:
       - "traefik.http.routers.web.rule=(Host(`${TRAEFIK_DOMAIN}`))"
 
   worker:
-    command: watchmedo auto-restart -d app/worker -p *.py --recursive celery -- --app=app.worker.main.celery worker --loglevel=info --concurrency=1 --pool solo
+    command: watchmedo auto-restart -d app/worker -p *.py --recursive celery -- --app=app.worker.main.celery worker --loglevel=info --concurrency=1 --pool prefork
     volumes:
       - ./:/etc/whisperbox-transcribe/
 

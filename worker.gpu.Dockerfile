@@ -36,4 +36,4 @@ ENV PATH /opt/venv/bin:$PATH
 COPY scripts/download_models.py .
 RUN python download_models.py ${WHISPER_MODEL}
 
-CMD celery --app=app.worker.main.celery worker --loglevel=info --concurrency=1 --pool=solo
+CMD celery --app=app.worker.main.celery worker --loglevel=info --concurrency=1 --pool=prefork

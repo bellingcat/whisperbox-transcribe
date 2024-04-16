@@ -2,9 +2,6 @@
 
 > HTTP wrapper around [openai/whisper](https://github.com/openai/whisper).
 
-
-> ⚠️ WARNING: The latest version has an unsolved bug and will not work until [issue #75](https://github.com/bellingcat/whisperbox-transcribe/issues/75) can be solved, help is welcome!
-
 ## Overview
 
 This project wraps OpenAI's `whisper` speech-to-text models with a HTTP API.
