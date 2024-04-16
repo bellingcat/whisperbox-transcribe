@@ -67,11 +67,11 @@ def transcribe(self: TranscribeTask, job_id: UUID) -> None:
         job = session.query(models.Job).filter(models.Job.id == job_id).one_or_none()
 
         if job is None:
-            logger.warn("[{job.id}]: Received unknown job, abort.")
+            logger.warn("[unknown]: Received unknown job, abort.")
             return
 
         if job.status in [models.JobStatus.error, models.JobStatus.success]:
-            logger.warn("[{job.id}]: job has already been processed, abort.")
+            logger.warn(f"[{job.id}]: job has already been processed, abort.")
             return
 
         logger.debug(f"[{job.id}]: start processing {job.type} job.")

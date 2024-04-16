@@ -28,4 +28,4 @@ RUN python download_models.py ${WHISPER_MODEL}
 
 COPY app ./app
 
-CMD celery --app=app.worker.main.celery worker --loglevel=info --concurrency=1 --pool=solo
+CMD celery --app=app.worker.main.celery worker --loglevel=info --pool=prefork --concurrency=1
